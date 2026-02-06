@@ -1,1 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenprofit | Authentication</title>
+    
+    <!-- Tailwind CSS -->
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <style>
+        :root {
+            --primary-dark: #17252A;
+            --surface-teal: #2B7A78;
+            --accent-teal: #3AAFA9;
+            --soft-ice: #DEF2F1;
+            --pure-white: #FEFFFF;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--pure-white);
+            min-height: 100vh;
+        }
+        
+        .glass-effect {
+            background: rgba(43, 122, 120, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(58, 175, 169, 0.2);
+        }
+        
+        .gradient-accent {
+            background: linear-gradient(90deg, rgba(58, 175, 169, 0.9) 0%, rgba(222, 242, 241, 0.7) 100%);
+        }
+        
+        .text-accent-teal { color: var(--accent-teal); }
+        .text-soft-ice { color: var(--soft-ice); }
+        
+        .form-input {
+            background: rgba(43, 122, 120, 0.3);
+            border: 1px solid rgba(43, 122, 120, 0.5);
+            color: var(--pure-white);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 3px rgba(58, 175, 169, 0.2);
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-teal);
+            color: var(--primary-dark);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2B7A78;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(58, 175, 169, 0.3);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--accent-teal);
+            color: var(--accent-teal);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(58, 175, 169, 0.1);
+        }
+        
+        .account-type-btn.active {
+            background-color: var(--accent-teal);
+            color: var(--primary-dark);
+        }
+        
+        .account-type-btn:not(.active) {
+            background-color: rgba(43, 122, 120, 0.3);
+            color: var(--soft-ice);
+            border: 1px solid rgba(43, 122, 120, 0.5);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-10">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-12 h-12 rounded-full gradient-accent flex items-center justify-center">
+                    <span class="font-bold text-primary-dark text-xl">C</span>
+                </div>
+                <span class="text-3xl font-bold text-accent-teal tracking-wider">CODENPROFIT</span>
+            </div>
+            <p class="text-soft-ice">Turn Code Into Commercial Capital</p>
+        </div>
+        
+        <!-- Auth Container -->
+        <div class="glass-effect rounded-2xl p-8">
+            <div id="login-container" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-center">Welcome Back</h2>
+                
+                <form id="login-form" class="space-y-6">
+                    <div>
+                        <label for="login-email" class="block text-soft-ice mb-2">Email Address</label>
+                        <input type="email" id="login-email" required 
+                               class="w-full px-4 py-3 rounded-lg form-input"
+                               placeholder="you@example.com">
+                    </div>
+                    
+                    <div>
+                        <label for="login-password" class="block text-soft-ice mb-2">Password</label>
+                        <input type="password" id="login-password" required 
+                               class="w-full px-4 py-3 rounded-lg form-input"
+                               placeholder="••••••••">
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2">
+                            <span class="text-sm text-soft-ice">Remember me</span>
+                        </label>
+                        <button type="button" onclick="showForgotPassword()" class="text-sm text-accent-teal hover:underline">
+                            Forgot password?
+                        </button>
+                    </div>
+                    
+                    <button type="submit" class="w-full py-3 rounded-lg btn-primary font-semibold">
+                        Sign In
+                    </button>
+                    
+                    <div class="relative my-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-surface-teal/50"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-4 bg-transparent text-soft-ice">Or continue with</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <button type="button" onclick="loginWithGoogle()" 
+                                class="py-3 rounded-lg bg-surface-teal/30 border border-surface-teal/50 text-soft-ice hover:bg-surface-teal/40 transition-colors flex items-center justify-center">
+                            <i class="fab fa-google mr-2"></i> Google
+                        </button>
+                        <button type="button" onclick="loginWithGitHub()" 
+                                class="py-3 rounded-lg bg-surface-teal/30 border border-surface-teal/50 text-soft-ice hover:bg-surface-teal/40 transition-colors flex items-center justify-center">
+                            <i class="fab fa-github mr-2"></i> GitHub
+                        </button>
+                    </div>
+                    
+                    <p class="text-center text-soft-ice mt-6">
+                        Don't have an account? 
+                        <button type="button" onclick="showSignup()" class="text-accent-teal hover:underline ml-1 font-semibold">
+                            Sign up
+                        </button>
+                    </p>
+                </form>
+            </div>
+            
+            <div id="signup-container" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-center">Join the Movement</h2>
+                
+                <form id="signup-form" class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="signup-firstname" class="block text-soft-ice mb-2">First Name</label>
+                            <input type="text" id="signup-firstname" required 
+                                   class="w-full px-4 py-3 rounded-lg form-input"
+                                   placeholder="John">
+                        </div>
+                        <div>
+                            <label for="signup-lastname" class="block text-soft-ice mb-2">Last Name</label>
+                            <input type="text" id="signup-lastname" required 
+                                   class="w-full px-4 py-3 rounded-lg form-input"
+                                   placeholder="Doe">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="signup-email" class="block text-soft-ice mb-2">Email Address</label>
+                        <input type="email" id="signup-email" required 
+                               class="w-full px-4 py-3 rounded-lg form-input"
+                               placeholder="you@example.com">
+                    </div>
+                    
+                    <div>
+                        <label for="signup-password" class="block text-soft-ice mb-2">Password</label>
+                        <input type="password" id="signup-password" required 
+                               class="w-full px-4 py-3 rounded-lg form-input"
+                               placeholder="••••••••">
+                        <p class="text-xs text-soft-ice mt-2">Minimum 8 characters with letters and numbers</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-soft-ice mb-3">I am a:</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button type="button" id="host-btn" 
+                                    class="py-3 rounded-lg account-type-btn active"
+                                    onclick="selectAccountType('host')">
+                                Business Host/Client
+                            </button>
+                            <button type="button" id="dev-btn" 
+                                    class="py-3 rounded-lg account-type-btn"
+                                    onclick="selectAccountType('developer')">
+                                Developer
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <input type="checkbox" id="terms" required class="mt-1 mr-2">
+                        <label for="terms" class="text-sm text-soft-ice">
+                            I agree to the <a href="terms.html" class="text-accent-teal hover:underline">Terms of Service</a> and <a href="privacy.html" class="text-accent-teal hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="w-full py-3 rounded-lg btn-primary font-semibold">
+                        Create Account
+                    </button>
+                    
+                    <p class="text-center text-soft-ice mt-6">
+                        Already have an account? 
+                        <button type="button" onclick="showLogin()" class="text-accent-teal hover:underline ml-1 font-semibold">
+                            Sign in
+                        </button>
+                    </p>
+                </form>
+            </div>
+            
+            <div id="forgot-password-container" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-center">Reset Password</h2>
+                
+                <form id="forgot-password-form" class="space-y-6">
+                    <div>
+                        <label for="reset-email" class="block text-soft-ice mb-2">Email Address</label>
+                        <input type="email" id="reset-email" required 
+                               class="w-full px-4 py-3 rounded-lg form-input"
+                               placeholder="you@example.com">
+                        <p class="text-sm text-soft-ice mt-2">We'll send you a link to reset your password</p>
+                    </div>
+                    
+                    <button type="submit" class="w-full py-3 rounded-lg btn-primary font-semibold">
+                        Send Reset Link
+                    </button>
+                    
+                    <button type="button" onclick="showLogin()" 
+                            class="w-full py-3 rounded-lg btn-outline font-semibold">
+                        Back to Login
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Back to home -->
+        <div class="text-center mt-6">
+            <a href="index.html" class="text-soft-ice hover:text-accent-teal transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Home
+            </a>
+        </div>
+    </div>
 
+    <!-- Notification -->
+    <div id="notification" class="fixed top-6 right-6 glass-effect rounded-lg p-4 shadow-lg z-50 transform translate-x-full transition-transform duration-300 max-w-sm">
+        <div class="flex items-center">
+            <div id="notification-icon" class="w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-check"></i>
+            </div>
+            <div>
+                <p class="font-medium" id="notification-title">Success!</p>
+                <p class="text-sm text-soft-ice" id="notification-message"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let selectedAccountType = 'host';
+        let isDemoMode = false;
+        
+        // DOM Elements
+        const loginContainer = document.getElementById('login-container');
+        const signupContainer = document.getElementById('signup-container');
+        const forgotPasswordContainer = document.getElementById('forgot-password-container');
+        
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize Firebase
+            const firebaseInitialized = initializeFirebase();
+            
+            if (!firebaseInitialized) {
+                console.warn("Firebase not initialized, using demo mode");
+                isDemoMode = true;
+                FirebaseService.setupDemoMode();
+            }
+            
+            // Check URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            const type = urlParams.get('type');
+            
+            if (type) {
+                selectAccountType(type);
+            }
+            
+            if (action === 'signup') {
+                showSignup();
+            } else {
+                showLogin();
+            }
+            
+            // Setup form handlers
+            setupFormHandlers();
+            
+            // Check if user is already logged in
+            checkAuthState();
+        });
+        
+        function setupFormHandlers() {
+            // Login form
+            document.getElementById('login-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin();
+            });
+            
+            // Signup form
+            document.getElementById('signup-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleSignup();
+            });
+            
+            // Forgot password form
+            document.getElementById('forgot-password-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleForgotPassword();
+            });
+        }
+        
+        // Check authentication state
+        function checkAuthState() {
+            if (auth) {
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        // User is already logged in, redirect to appropriate dashboard
+                        getUserTypeAndRedirect(user.uid);
+                    }
+                });
+            }
+        }
+        
+        // Get user type and redirect
+        async function getUserTypeAndRedirect(uid) {
+            try {
+                // Try to get user data from both collections
+                const [devDoc, hostDoc] = await Promise.all([
+                    db?.collection('developers').doc(uid).get(),
+                    db?.collection('hosts').doc(uid).get()
+                ]);
+                
+                if (devDoc?.exists) {
+                    window.location.href = 'dev.html';
+                } else if (hostDoc?.exists) {
+                    window.location.href = 'host.html';
+                }
+            } catch (error) {
+                console.error('Error getting user type:', error);
+            }
+        }
+        
+        // Show/Hide Containers
+        function showLogin() {
+            loginContainer.classList.remove('hidden');
+            signupContainer.classList.add('hidden');
+            forgotPasswordContainer.classList.add('hidden');
+        }
+        
+        function showSignup() {
+            loginContainer.classList.add('hidden');
+            signupContainer.classList.remove('hidden');
+            forgotPasswordContainer.classList.add('hidden');
+        }
+        
+        function showForgotPassword() {
+            loginContainer.classList.add('hidden');
+            signupContainer.classList.add('hidden');
+            forgotPasswordContainer.classList.remove('hidden');
+        }
+        
+        // Account Type Selection
+        function selectAccountType(type) {
+            selectedAccountType = type;
+            
+            const hostBtn = document.getElementById('host-btn');
+            const devBtn = document.getElementById('dev-btn');
+            
+            if (type === 'host') {
+                hostBtn.classList.add('active');
+                devBtn.classList.remove('active');
+            } else {
+                devBtn.classList.add('active');
+                hostBtn.classList.remove('active');
+            }
+        }
+        
+        // Authentication Handlers
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showNotification('Error', 'Please fill all fields', 'error');
+                return;
+            }
+            
+            showNotification('Info', 'Signing in...', 'info');
+            
+            if (isDemoMode) {
+                // Demo mode login
+                setTimeout(() => {
+                    if (selectedAccountType === 'host') {
+                        window.location.href = 'host.html';
+                    } else {
+                        window.location.href = 'dev.html';
+                    }
+                }, 1000);
+                return;
+            }
+            
+            const result = await FirebaseService.signIn(email, password);
+            
+            if (result.success) {
+                showNotification('Success', 'Login successful!', 'success');
+                setTimeout(() => {
+                    getUserTypeAndRedirect(result.user.uid);
+                }, 1500);
+            } else {
+                showNotification('Error', result.error, 'error');
+            }
+        }
+        
+        async function handleSignup() {
+            const firstName = document.getElementById('signup-firstname').value;
+            const lastName = document.getElementById('signup-lastname').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const terms = document.getElementById('terms').checked;
+            
+            if (!firstName || !lastName || !email || !password) {
+                showNotification('Error', 'Please fill all fields', 'error');
+                return;
+            }
+            
+            if (!terms) {
+                showNotification('Error', 'Please agree to the terms and conditions', 'error');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showNotification('Error', 'Password must be at least 8 characters', 'error');
+                return;
+            }
+            
+            showNotification('Info', 'Creating account...', 'info');
+            
+            if (isDemoMode) {
+                // Demo mode signup
+                setTimeout(() => {
+                    showNotification('Success', 'Account created successfully!', 'success');
+                    setTimeout(() => {
+                        if (selectedAccountType === 'host') {
+                            window.location.href = 'host.html';
+                        } else {
+                            window.location.href = 'dev.html';
+                        }
+                    }, 1500);
+                }, 1000);
+                return;
+            }
+            
+            const userData = {
+                email: email,
+                displayName: `${firstName} ${lastName}`,
+                firstName: firstName,
+                lastName: lastName,
+                userType: selectedAccountType
+            };
+            
+            const result = await FirebaseService.signUp(email, password, userData);
+            
+            if (result.success) {
+                showNotification('Success', 'Account created successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = selectedAccountType === 'host' ? 'host.html' : 'dev.html';
+                }, 1500);
+            } else {
+                showNotification('Error', result.error, 'error');
+            }
+        }
+        
+        async function handleForgotPassword() {
+            const email = document.getElementById('reset-email').value;
+            
+            if (!email) {
+                showNotification('Error', 'Please enter your email address', 'error');
+                return;
+            }
+            
+            if (isDemoMode) {
+                showNotification('Info', 'In production, a reset email would be sent', 'info');
+                return;
+            }
+            
+            const result = await FirebaseService.resetPassword(email);
+            
+            if (result.success) {
+                showNotification('Success', 'Password reset email sent! Check your inbox.', 'success');
+            } else {
+                showNotification('Error', result.error, 'error');
+            }
+        }
+        
+        // Social Login
+        function loginWithGoogle() {
+            showNotification('Info', 'Google login would be implemented with Firebase', 'info');
+        }
+        
+        function loginWithGitHub() {
+            showNotification('Info', 'GitHub login would be implemented with Firebase', 'info');
+        }
+        
+        // Notification System
+        function showNotification(title, message, type = 'success') {
+            const icon = document.getElementById('notification-icon');
+            const notificationTitle = document.getElementById('notification-title');
+            const notificationMessage = document.getElementById('notification-message');
+            const notification = document.getElementById('notification');
+            
+            // Set notification type
+            if (type === 'success') {
+                icon.className = 'w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-4';
+                icon.innerHTML = '<i class="fas fa-check text-green-500"></i>';
+            } else if (type === 'error') {
+                icon.className = 'w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-4';
+                icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+            } else if (type === 'info') {
+                icon.className = 'w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4';
+                icon.innerHTML = '<i class="fas fa-info-circle text-blue-500"></i>';
+            }
+            
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            // Show notification
+            notification.classList.remove('translate-x-full');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
