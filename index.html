@@ -1,1 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenprofit | Turn Code Into Commercial Capital</title>
+    
+    <!-- Tailwind CSS -->
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-dark: #17252A;
+            --surface-teal: #2B7A78;
+            --accent-teal: #3AAFA9;
+            --soft-ice: #DEF2F1;
+            --pure-white: #FEFFFF;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--pure-white);
+            min-height: 100vh;
+        }
+        
+        .glass-effect {
+            background: rgba(43, 122, 120, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(58, 175, 169, 0.2);
+        }
+        
+        .gradient-accent {
+            background: linear-gradient(90deg, rgba(58, 175, 169, 0.9) 0%, rgba(222, 242, 241, 0.7) 100%);
+        }
+        
+        .text-accent-teal { color: var(--accent-teal); }
+        .text-soft-ice { color: var(--soft-ice); }
+        
+        .btn-primary {
+            background-color: var(--accent-teal);
+            color: var(--primary-dark);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2B7A78;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(58, 175, 169, 0.3);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--accent-teal);
+            color: var(--accent-teal);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(58, 175, 169, 0.1);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-effect fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full gradient-accent flex items-center justify-center">
+                        <span class="font-bold text-primary-dark text-lg">C</span>
+                    </div>
+                    <span class="text-2xl font-bold text-accent-teal tracking-wider">CODENPROFIT</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#features" class="text-soft-ice hover:text-accent-teal transition-colors">Features</a>
+                    <a href="#how-it-works" class="text-soft-ice hover:text-accent-teal transition-colors">How It Works</a>
+                    <a href="#testimonials" class="text-soft-ice hover:text-accent-teal transition-colors">Testimonials</a>
+                    <a href="auth.html" class="px-4 py-2 rounded-lg btn-outline">Get Started</a>
+                </div>
+                
+                <button id="mobile-menu-btn" class="md:hidden text-accent-teal">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden mt-4 hidden">
+                <div class="space-y-4 py-4">
+                    <a href="#features" class="block text-soft-ice hover:text-accent-teal transition-colors">Features</a>
+                    <a href="#how-it-works" class="block text-soft-ice hover:text-accent-teal transition-colors">How It Works</a>
+                    <a href="#testimonials" class="block text-soft-ice hover:text-accent-teal transition-colors">Testimonials</a>
+                    <a href="auth.html" class="block px-4 py-2 rounded-lg btn-outline text-center">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-6">
+        <div class="container mx-auto max-w-6xl">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                        Turn <span class="text-accent-teal">Code</span> Into <br>
+                        <span class="text-accent-teal">Commercial Capital</span>
+                    </h1>
+                    <p class="text-xl text-soft-ice mb-8">
+                        The elite marketplace bridging the gap between student talent and real-world business impact. Join the top 5% of developers and transform your skills into revenue.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="auth.html?action=signup&type=developer" class="px-8 py-4 rounded-lg btn-primary text-lg font-semibold text-center">
+                            <i class="fas fa-code mr-2"></i> Start as Developer
+                        </a>
+                        <a href="auth.html?action=signup&type=host" class="px-8 py-4 rounded-lg btn-outline text-lg font-semibold text-center">
+                            <i class="fas fa-user-tie mr-2"></i> Start as Business
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="glass-effect rounded-2xl p-8 float-animation">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="glass-dark rounded-xl p-6">
+                                <i class="fas fa-graduation-cap text-accent-teal text-3xl mb-4"></i>
+                                <h3 class="font-bold text-lg mb-2">150+ Elite Developers</h3>
+                                <p class="text-sm text-soft-ice">Top 5% student talent curated</p>
+                            </div>
+                            <div class="glass-dark rounded-xl p-6">
+                                <i class="fas fa-chart-line text-accent-teal text-3xl mb-4"></i>
+                                <h3 class="font-bold text-lg mb-2">$0 Agency Markup</h3>
+                                <p class="text-sm text-soft-ice">Direct developer access</p>
+                            </div>
+                            <div class="glass-dark rounded-xl p-6">
+                                <i class="fas fa-shield-alt text-accent-teal text-3xl mb-4"></i>
+                                <h3 class="font-bold text-lg mb-2">24/7 HR Support</h3>
+                                <p class="text-sm text-soft-ice">Professional guidance included</p>
+                            </div>
+                            <div class="glass-dark rounded-xl p-6">
+                                <i class="fas fa-rocket text-accent-teal text-3xl mb-4"></i>
+                                <h3 class="font-bold text-lg mb-2">50+ Active Projects</h3>
+                                <p class="text-sm text-soft-ice">Real-world business impact</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-6 bg-surface-teal/10">
+        <div class="container mx-auto max-w-6xl">
+            <h2 class="text-4xl font-bold text-center mb-4">Why Choose Codenprofit?</h2>
+            <p class="text-xl text-soft-ice text-center mb-12 max-w-3xl mx-auto">We've redefined the developer-client relationship with premium features for both sides</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-effect rounded-xl p-8">
+                    <div class="w-16 h-16 rounded-full gradient-accent flex items-center justify-center mb-6">
+                        <i class="fas fa-users text-primary-dark text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Elite Network Only</h3>
+                    <p class="text-soft-ice mb-6">Only the top 5% of student developers are accepted. Rigorous vetting ensures you work with the best talent available.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Technical skill assessment</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Portfolio review</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Communication skills evaluation</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass-effect rounded-xl p-8">
+                    <div class="w-16 h-16 rounded-full gradient-accent flex items-center justify-center mb-6">
+                        <i class="fas fa-handshake text-primary-dark text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Zero Middleman</h3>
+                    <p class="text-soft-ice mb-6">Direct connection between businesses and developers. No agency markup, no hidden fees, just pure value exchange.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Direct communication channels</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Transparent pricing</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Milestone-based payments</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass-effect rounded-xl p-8">
+                    <div class="w-16 h-16 rounded-full gradient-accent flex items-center justify-center mb-6">
+                        <i class="fas fa-headset text-primary-dark text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">24/7 Professional Support</h3>
+                    <p class="text-soft-ice mb-6">Our dedicated HR team ensures smooth collaboration, conflict resolution, and professional development guidance.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Dedicated HR lead</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Conflict resolution</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent-teal mr-2"></i>
+                            <span>Professional mentorship</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-20 px-6">
+        <div class="container mx-auto max-w-6xl">
+            <h2 class="text-4xl font-bold text-center mb-12">How Codenprofit Works</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- For Businesses -->
+                <div class="glass-effect rounded-xl p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-full gradient-accent flex items-center justify-center mr-4">
+                            <i class="fas fa-user-tie text-primary-dark"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">For Businesses</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">1</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Share Your Vision</h4>
+                                <p class="text-soft-ice">Describe your project in our Vision Portal with detailed requirements and brand assets.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">2</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Get Matched</h4>
+                                <p class="text-soft-ice">Our algorithm matches you with the perfect elite developer for your project needs.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">3</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Track Progress</h4>
+                                <p class="text-soft-ice">Monitor real-time progress, approve milestones, and communicate directly via our bridge.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">4</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Launch & Scale</h4>
+                                <p class="text-soft-ice">Deploy your project and continue scaling with ongoing technical guardianship.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- For Developers -->
+                <div class="glass-effect rounded-xl p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-full gradient-accent flex items-center justify-center mr-4">
+                            <i class="fas fa-code text-primary-dark"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">For Developers</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">1</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Join Elite Network</h4>
+                                <p class="text-soft-ice">Complete our onboarding to join the top 5% of student developers.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">2</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Browse Premium Projects</h4>
+                                <p class="text-soft-ice">Access real-world business projects with transparent budgets and requirements.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">3</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Build & Earn</h4>
+                                <p class="text-soft-ice">Work on exciting projects, earn commercial capital, and build your portfolio.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex">
+                            <div class="w-8 h-8 rounded-full bg-accent-teal flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="font-bold text-primary-dark">4</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Grow Professionally</h4>
+                                <p class="text-soft-ice">Receive mentorship, earn badges, and advance your career with our HR support.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-6">
+        <div class="container mx-auto max-w-4xl text-center">
+            <div class="glass-effect rounded-2xl p-12">
+                <h2 class="text-4xl font-bold mb-6">Ready to Transform Code into Capital?</h2>
+                <p class="text-xl text-soft-ice mb-8">Join hundreds of businesses and developers already revolutionizing how tech talent meets commercial opportunity.</p>
+                <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                    <a href="auth.html?action=signup&type=developer" class="px-8 py-4 rounded-lg btn-primary text-lg font-semibold">
+                        <i class="fas fa-rocket mr-2"></i> Start as Developer
+                    </a>
+                    <a href="auth.html?action=signup&type=host" class="px-8 py-4 rounded-lg btn-outline text-lg font-semibold">
+                        <i class="fas fa-briefcase mr-2"></i> Start as Business
+                    </a>
+                </div>
+                <p class="text-soft-ice mt-6">
+                    Already have an account? 
+                    <a href="auth.html" class="text-accent-teal hover:underline font-semibold">Sign in here</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glass-effect border-t border-surface-teal/50 py-8 px-6">
+        <div class="container mx-auto max-w-6xl">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-10 h-10 rounded-full gradient-accent flex items-center justify-center">
+                            <span class="font-bold text-primary-dark text-lg">C</span>
+                        </div>
+                        <span class="text-2xl font-bold text-accent-teal tracking-wider">CODENPROFIT</span>
+                    </div>
+                    <p class="text-soft-ice">Turn Code Into Commercial Capital</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Platform</h4>
+                    <ul class="space-y-2">
+                        <li><a href="auth.html" class="text-soft-ice hover:text-accent-teal transition-colors">Sign In</a></li>
+                        <li><a href="auth.html?action=signup" class="text-soft-ice hover:text-accent-teal transition-colors">Sign Up</a></li>
+                        <li><a href="#features" class="text-soft-ice hover:text-accent-teal transition-colors">Features</a></li>
+                        <li><a href="#how-it-works" class="text-soft-ice hover:text-accent-teal transition-colors">How It Works</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="terms.html" class="text-soft-ice hover:text-accent-teal transition-colors">Terms of Service</a></li>
+                        <li><a href="privacy.html" class="text-soft-ice hover:text-accent-teal transition-colors">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="text-soft-ice">support@codenprofit.com</li>
+                        <li class="text-soft-ice">+1 (555) 123-4567</li>
+                        <li class="text-soft-ice">Available 24/7</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-surface-teal/50 mt-8 pt-8 text-center">
+                <p class="text-soft-ice">&copy; 2024 Codenprofit. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                if (this.getAttribute('href') !== '#') {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                        // Close mobile menu if open
+                        document.getElementById('mobile-menu').classList.add('hidden');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
