@@ -1,1 +1,2883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenprofit | Business Command Center</title>
+    
+    <!-- Tailwind CSS -->
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    
+    <style>
+        :root {
+            --primary-dark: #0A0A0F;
+            --surface-charcoal: #1A1A2E;
+            --accent-gold: #D4AF37;
+            --secondary-gold: #B8860B;
+            --light-charcoal: #2D2D44;
+            --pure-white: #FFFFFF;
+            --soft-gray: #A0A0B0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--pure-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-effect {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        
+        .glass-dark {
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        
+        .glass-gold {
+            background: rgba(212, 175, 55, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .gradient-gold {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.9) 0%, rgba(184, 134, 11, 0.7) 100%);
+        }
+        
+        .text-accent-gold { color: var(--accent-gold); }
+        .text-soft-gray { color: var(--soft-gray); }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--secondary-gold) 100%);
+            color: var(--primary-dark);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+        }
+        
+        .form-input {
+            background: rgba(45, 45, 68, 0.5);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: var(--pure-white);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+        
+        .status-pill {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-open {
+            background: rgba(212, 175, 55, 0.2);
+            color: var(--accent-gold);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .status-progress {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .status-review {
+            background: rgba(245, 158, 11, 0.2);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .status-completed {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ADE80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--accent-gold);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            margin: 2px;
+        }
+        
+        .tab-button {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--soft-gray);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: var(--accent-gold);
+            border-bottom: 2px solid var(--accent-gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
+        
+        .sidebar {
+            width: 280px;
+            transition: all 0.3s ease;
+            border-right: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        
+        .drop-zone {
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(45, 45, 68, 0.3);
+        }
+        
+        .drop-zone.dragover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
+        
+        .milestone {
+            position: relative;
+            padding: 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .milestone.active {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .milestone.completed {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        
+        .pulse-line {
+            height: 4px;
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pulse-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), var(--secondary-gold));
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        
+        .chat-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+        }
+        
+        .chat-bubble.host {
+            background: rgba(212, 175, 55, 0.2);
+            margin-left: auto;
+        }
+        
+        .chat-bubble.developer {
+            background: rgba(45, 45, 68, 0.8);
+            margin-right: auto;
+        }
+        
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-dot.active {
+            background: var(--accent-gold);
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 50;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+        
+        /* Offline Indicator */
+        .offline-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #F59E0B;
+            color: #0A0A0F;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            display: none;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 15, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-gold);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 6px;
+            right: 6px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            max-width: 380px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Offline Indicator -->
+    <div id="offline-indicator" class="offline-indicator">
+        <i class="fas fa-wifi-slash mr-2"></i> Offline Mode - Data may not sync with server
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p class="text-accent-gold font-medium">Initializing Business Command Center...</p>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <div class="flex items-start">
+            <div id="notification-icon" class="w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="flex-grow">
+                <p class="font-semibold mb-1" id="notification-title">Success!</p>
+                <p class="text-sm text-soft-gray" id="notification-message"></p>
+            </div>
+            <button onclick="hideNotification()" class="text-soft-gray hover:text-accent-gold ml-2">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="md:hidden fixed top-4 left-4 z-40 w-10 h-10 rounded-lg glass-effect flex items-center justify-center">
+        <i class="fas fa-bars text-accent-gold"></i>
+    </button>
+    
+    <!-- Communication Bridge (Floating Chat) -->
+    <div id="communication-bridge" class="fixed bottom-6 right-6 z-40 hidden">
+        <div class="glass-effect rounded-xl shadow-2xl" style="width: 380px; height: 500px;">
+            <div class="flex items-center justify-between p-4 border-b border-gray-800">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-accent-gold/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-headset text-accent-gold"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold">24/7 Communication Bridge</p>
+                        <p class="text-xs text-soft-gray">Connected to HR Lead & Developer</p>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="text-soft-gray hover:text-accent-gold">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 h-80 overflow-y-auto" id="chat-messages">
+                <!-- Chat messages will appear here -->
+            </div>
+            <div class="p-4 border-t border-gray-800">
+                <div class="flex">
+                    <input type="text" id="chat-input" class="flex-grow px-4 py-2 rounded-l-lg form-input" placeholder="Type your message...">
+                    <button onclick="sendChatMessage()" class="px-4 py-2 rounded-r-lg btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="mt-3 flex justify-between">
+                    <button onclick="openDeveloperChat()" class="text-xs px-3 py-1 rounded-lg btn-outline">
+                        <i class="fas fa-code mr-1"></i> Developer Chat
+                    </button>
+                    <button onclick="openHREscalation()" class="text-xs px-3 py-1 rounded-lg bg-red-500/20 text-red-400 border-red-500/30 border">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> HR Escalation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Toggle Button -->
+    <button id="chat-toggle-btn" onclick="toggleChat()" class="fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full gradient-gold flex items-center justify-center shadow-lg">
+        <i class="fas fa-comments text-primary-dark text-xl"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar glass-dark fixed left-0 top-0 h-screen overflow-y-auto">
+        <!-- Logo -->
+        <div class="p-6 border-b border-gray-800">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-full gradient-gold flex items-center justify-center">
+                    <span class="font-bold text-primary-dark text-lg">C</span>
+                </div>
+                <div>
+                    <span class="text-xl font-bold text-accent-gold tracking-wider">CODENPROFIT</span>
+                    <p class="text-xs text-soft-gray mt-1">Business Command Center</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Info -->
+        <div class="p-6 border-b border-gray-800">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full gradient-gold flex items-center justify-center">
+                    <span class="font-bold text-primary-dark text-lg" id="user-initials">B</span>
+                </div>
+                <div>
+                    <p class="font-semibold" id="user-name">Business Owner</p>
+                    <p class="text-sm text-soft-gray" id="user-company">Company Name</p>
+                    <div class="flex items-center mt-1">
+                        <span class="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                            <i class="fas fa-shield-alt mr-1"></i> Premium Plan
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="p-4">
+            <ul class="space-y-1">
+                <li>
+                    <a href="#dashboard" class="flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#profile" class="flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors">
+                        <i class="fas fa-user-tie mr-3"></i>
+                        Brand Identity Hub
+                    </a>
+                </li>
+                <li>
+                    <a href="#new-project" class="flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors">
+                        <i class="fas fa-rocket mr-3"></i>
+                        Vision Portal
+                    </a>
+                </li>
+                <li>
+                    <a href="#developers" class="flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors">
+                        <i class="fas fa-code mr-3"></i>
+                        Elite Matchmaking
+                    </a>
+                </li>
+                <li>
+                    <a href="#projects" class="flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors">
+                        <i class="fas fa-project-diagram mr-3"></i>
+                        Project Pulse
+                    </a>
+                </li>
+                <li>
+                    <a href="#billing" class="flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors">
+                        <i class="fas fa-credit-card mr-3"></i>
+                        Billing & Finance
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Bottom Links -->
+        <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-800">
+            <ul class="space-y-1">
+                <li>
+                    <a href="index.html" class="flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors">
+                        <i class="fas fa-home mr-3"></i>
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <button onclick="logout()" class="w-full flex items-center p-3 rounded-lg text-soft-gray hover:bg-gray-800 hover:text-accent-gold transition-colors text-left">
+                        <i class="fas fa-sign-out-alt mr-3"></i>
+                        Logout
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="md:ml-72 p-4 md:p-6 min-h-screen">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Business Command Center</h1>
+                    <p class="text-soft-gray">Turn your vision into commercial reality with elite student talent</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex items-center space-x-4">
+                    <button onclick="toggleChat()" class="px-4 py-2 rounded-lg btn-outline">
+                        <i class="fas fa-headset mr-2"></i> Open Bridge
+                    </button>
+                    <a href="#new-project" class="px-4 py-2 rounded-lg btn-primary">
+                        <i class="fas fa-rocket mr-2"></i> New Vision
+                    </a>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Network Stats -->
+        <div class="glass-effect rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6">Elite Network Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-5xl font-bold text-accent-gold mb-2">150+</div>
+                    <p class="text-soft-gray">Verified Developers</p>
+                    <p class="text-xs text-soft-gray mt-1">Top 5% of student talent</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-bold text-accent-gold mb-2">50+</div>
+                    <p class="text-soft-gray">Active Projects</p>
+                    <p class="text-xs text-soft-gray mt-1">From vision to deployment</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-bold text-accent-gold mb-2">$0</div>
+                    <p class="text-soft-gray">Agency Markup</p>
+                    <p class="text-xs text-soft-gray mt-1">Direct developer access</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-bold text-accent-gold mb-2">98%</div>
+                    <p class="text-soft-gray">Success Rate</p>
+                    <p class="text-xs text-soft-gray mt-1">On-time project delivery</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Stat 1 -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-soft-gray">Active Projects</p>
+                        <p class="text-3xl font-bold text-accent-gold" id="active-projects-count">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-accent-gold/20 flex items-center justify-center">
+                        <i class="fas fa-project-diagram text-accent-gold"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stat 2 -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-soft-gray">Total Investment</p>
+                        <p class="text-3xl font-bold text-accent-gold" id="total-investment">$0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-accent-gold/20 flex items-center justify-center">
+                        <i class="fas fa-dollar-sign text-accent-gold"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stat 3 -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-soft-gray">Developers Engaged</p>
+                        <p class="text-3xl font-bold text-accent-gold" id="developers-engaged">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-accent-gold/20 flex items-center justify-center">
+                        <i class="fas fa-users text-accent-gold"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stat 4 -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-soft-gray">Avg. Project Time</p>
+                        <p class="text-3xl font-bold text-accent-gold" id="avg-project-time">0 weeks</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-accent-gold/20 flex items-center justify-center">
+                        <i class="fas fa-clock text-accent-gold"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ====== BRAND IDENTITY HUB ====== -->
+        <div id="profile-section" class="hidden animate-fadeIn">
+            <div class="glass-effect rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold">Brand Identity Hub</h2>
+                    <div class="flex space-x-2">
+                        <button class="tab-button active" data-tab="identity">Identity</button>
+                        <button class="tab-button" data-tab="finance">Finance</button>
+                        <button class="tab-button" data-tab="plans">Plans</button>
+                    </div>
+                </div>
+                
+                <!-- Identity Tab -->
+                <div id="tab-identity" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Brand Asset Vault -->
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Brand Asset Vault</h3>
+                            <div class="drop-zone mb-6" id="logo-drop-zone">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-accent-gold mb-3"></i>
+                                <p class="font-medium mb-2">Drop your logo here</p>
+                                <p class="text-sm text-soft-gray mb-4">SVG or PNG (Max 5MB)</p>
+                                <input type="file" id="logo-upload" accept=".svg,.png,.jpg,.jpeg" class="hidden">
+                                <button onclick="document.getElementById('logo-upload').click()" class="px-4 py-2 rounded-lg btn-outline text-sm">
+                                    <i class="fas fa-upload mr-2"></i> Choose File
+                                </button>
+                            </div>
+                            
+                            <div id="uploaded-logo" class="hidden mb-6">
+                                <div class="flex items-center justify-between p-4 rounded-lg glass-gold">
+                                    <div class="flex items-center">
+                                        <div id="logo-preview" class="w-16 h-16 rounded-lg bg-gray-800 mr-4 flex items-center justify-center">
+                                            <i class="fas fa-image text-accent-gold"></i>
+                                        </div>
+                                        <div>
+                                            <p id="logo-name" class="font-medium">logo.png</p>
+                                            <p class="text-sm text-soft-gray">Uploaded • Shared with developers</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="removeLogo()" class="text-red-400 hover:text-red-300">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Color Palette -->
+                            <div class="mb-6">
+                                <h4 class="font-bold mb-3">Brand Colors</h4>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div class="color-input-group">
+                                        <label class="block text-sm text-soft-gray mb-1">Primary</label>
+                                        <div class="flex">
+                                            <input type="color" id="color-primary" value="#D4AF37" class="w-10 h-10 rounded-l-lg cursor-pointer">
+                                            <input type="text" id="color-primary-hex" value="#D4AF37" class="flex-grow px-3 py-2 rounded-r-lg form-input">
+                                        </div>
+                                    </div>
+                                    <div class="color-input-group">
+                                        <label class="block text-sm text-soft-gray mb-1">Secondary</label>
+                                        <div class="flex">
+                                            <input type="color" id="color-secondary" value="#0A0A0F" class="w-10 h-10 rounded-l-lg cursor-pointer">
+                                            <input type="text" id="color-secondary-hex" value="#0A0A0F" class="flex-grow px-3 py-2 rounded-r-lg form-input">
+                                        </div>
+                                    </div>
+                                    <div class="color-input-group">
+                                        <label class="block text-sm text-soft-gray mb-1">Accent</label>
+                                        <div class="flex">
+                                            <input type="color" id="color-accent" value="#1A1A2E" class="w-10 h-10 rounded-l-lg cursor-pointer">
+                                            <input type="text" id="color-accent-hex" value="#1A1A2E" class="flex-grow px-3 py-2 rounded-r-lg form-input">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Font Preferences -->
+                            <div>
+                                <h4 class="font-bold mb-3">Font Preferences</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm text-soft-gray mb-1">Heading Font</label>
+                                        <select id="font-heading" class="w-full px-3 py-2 rounded-lg form-input">
+                                            <option value="Montserrat">Montserrat</option>
+                                            <option value="Inter">Inter</option>
+                                            <option value="Roboto">Roboto</option>
+                                            <option value="Poppins">Poppins</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-soft-gray mb-1">Body Font</label>
+                                        <select id="font-body" class="w-full px-3 py-2 rounded-lg form-input">
+                                            <option value="Inter">Inter</option>
+                                            <option value="Roboto">Roboto</option>
+                                            <option value="Open Sans">Open Sans</option>
+                                            <option value="Montserrat">Montserrat</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview & Actions -->
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Brand Preview</h3>
+                            <div class="glass-gold rounded-lg p-6 mb-6">
+                                <div class="flex items-center mb-4">
+                                    <div id="brand-preview-logo" class="w-12 h-12 rounded-lg bg-gray-800 mr-4 flex items-center justify-center">
+                                        <i class="fas fa-crown text-accent-gold"></i>
+                                    </div>
+                                    <div>
+                                        <p id="brand-preview-name" class="font-bold text-lg" style="font-family: var(--heading-font)">Your Brand</p>
+                                        <p id="brand-preview-tagline" class="text-sm text-soft-gray" style="font-family: var(--body-font)">Premium Business Solutions</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2 mb-4">
+                                    <div class="w-6 h-6 rounded-full" id="preview-color-primary" style="background-color: #D4AF37;"></div>
+                                    <div class="w-6 h-6 rounded-full" id="preview-color-secondary" style="background-color: #0A0A0F;"></div>
+                                    <div class="w-6 h-6 rounded-full" id="preview-color-accent" style="background-color: #1A1A2E;"></div>
+                                </div>
+                                <p class="text-sm text-soft-gray mb-4" style="font-family: var(--body-font)">
+                                    This preview shows how your brand assets will appear to developers. All changes are automatically synced.
+                                </p>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-4">
+                                <button onclick="resetBrandAssets()" class="px-4 py-2 rounded-lg btn-outline">
+                                    Reset
+                                </button>
+                                <button onclick="saveBrandAssets()" class="px-4 py-2 rounded-lg btn-primary">
+                                    <i class="fas fa-sync-alt mr-2"></i> Sync with Developers
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Finance Tab -->
+                <div id="tab-finance" class="tab-content hidden">
+                    <h3 class="text-xl font-bold mb-6">Billing History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-800">
+                                    <th class="text-left py-3 px-4 text-soft-gray font-medium">Date</th>
+                                    <th class="text-left py-3 px-4 text-soft-gray font-medium">Description</th>
+                                    <th class="text-left py-3 px-4 text-soft-gray font-medium">Amount</th>
+                                    <th class="text-left py-3 px-4 text-soft-gray font-medium">Status</th>
+                                    <th class="text-left py-3 px-4 text-soft-gray font-medium">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billing-history">
+                                <!-- Billing records will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <button onclick="generateInvoice()" class="px-4 py-2 rounded-lg btn-outline">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i> Generate Invoice
+                        </button>
+                        <button onclick="downloadAllInvoices()" class="px-4 py-2 rounded-lg btn-primary">
+                            <i class="fas fa-download mr-2"></i> Download All
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Plans Tab -->
+                <div id="tab-plans" class="tab-content hidden">
+                    <h3 class="text-xl font-bold mb-6">Technical Guardianship Plans</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="glass-gold rounded-xl p-6">
+                            <h4 class="font-bold text-lg mb-2">Basic</h4>
+                            <div class="text-3xl font-bold text-accent-gold mb-4">$99<span class="text-lg text-soft-gray">/month</span></div>
+                            <ul class="space-y-2 mb-6">
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>Weekly backups</span>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>Security monitoring</span>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-times text-red-400 mr-2"></i>
+                                    <span class="text-soft-gray">24/7 support</span>
+                                </li>
+                            </ul>
+                            <button class="w-full px-4 py-2 rounded-lg btn-outline">Current Plan</button>
+                        </div>
+                        
+                        <div class="glass-gold rounded-xl p-6 border-2 border-accent-gold">
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                                <span class="px-3 py-1 rounded-full bg-accent-gold text-primary-dark text-xs font-bold">RECOMMENDED</span>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Premium</h4>
+                            <div class="text-3xl font-bold text-accent-gold mb-4">$299<span class="text-lg text-soft-gray">/month</span></div>
+                            <ul class="space-y-2 mb-6">
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>Daily backups</span>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>Advanced security</span>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>24/7 priority support</span>
+                                </li>
+                            </ul>
+                            <button class="w-full px-4 py-2 rounded-lg btn-primary">Upgrade Now</button>
+                        </div>
+                        
+                        <div class="glass-gold rounded-xl p-6">
+                            <h4 class="font-bold text-lg mb-2">Enterprise</h4>
+                            <div class="text-3xl font-bold text-accent-gold mb-4">$999<span class="text-lg text-soft-gray">/month</span></div>
+                            <ul class="space-y-2 mb-6">
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>Real-time backups</span>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>Enterprise security</span>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-400 mr-2"></i>
+                                    <span>Dedicated account manager</span>
+                                </li>
+                            </ul>
+                            <button class="w-full px-4 py-2 rounded-lg btn-outline">Contact Sales</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ====== VISION PORTAL ====== -->
+        <div id="new-project-section" class="hidden animate-fadeIn">
+            <div class="glass-effect rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold">Vision Portal</h2>
+                    <div class="flex items-center space-x-2">
+                        <div class="progress-dot active" data-step="1"></div>
+                        <div class="w-8 h-1 bg-gray-700"></div>
+                        <div class="progress-dot" data-step="2"></div>
+                        <div class="w-8 h-1 bg-gray-700"></div>
+                        <div class="progress-dot" data-step="3"></div>
+                    </div>
+                </div>
+                
+                <!-- Step 1: Vision -->
+                <div id="vision-step-1" class="vision-step">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 rounded-full bg-accent-gold/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-lightbulb text-accent-gold text-3xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Share Your Vision</h3>
+                        <p class="text-soft-gray">Describe your big idea in detail</p>
+                    </div>
+                    
+                    <div class="max-w-2xl mx-auto">
+                        <div class="mb-6">
+                            <label for="project-vision" class="block text-soft-gray mb-2">The Big Idea *</label>
+                            <textarea id="project-vision" rows="6" class="w-full px-4 py-3 rounded-lg form-input" placeholder="Describe your vision in detail. For example: 'I want a luxury jewelry e-commerce platform that feels like Cartier, with 3D product visualization and personalized recommendations...'"></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label for="project-name" class="block text-soft-gray mb-2">Project Name *</label>
+                                <input type="text" id="project-name" required class="w-full px-4 py-3 rounded-lg form-input" placeholder="Luxury Jewelry Store">
+                            </div>
+                            <div>
+                                <label for="project-industry" class="block text-soft-gray mb-2">Industry *</label>
+                                <select id="project-industry" required class="w-full px-4 py-3 rounded-lg form-input">
+                                    <option value="">Select Industry</option>
+                                    <option value="luxury-retail">Luxury Retail</option>
+                                    <option value="tech-saas">Tech SaaS</option>
+                                    <option value="service">Service Industry</option>
+                                    <option value="ecommerce">E-commerce</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="education">Education</option>
+                                    <option value="travel">Travel & Hospitality</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button onclick="nextVisionStep()" class="px-6 py-3 rounded-lg btn-primary">
+                                Continue <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Budget & Timeline -->
+                <div id="vision-step-2" class="vision-step hidden">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 rounded-full bg-accent-gold/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-accent-gold text-3xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Define Investment & Timeline</h3>
+                        <p class="text-soft-gray">Set your budget and expected timeline</p>
+                    </div>
+                    
+                    <div class="max-w-2xl mx-auto">
+                        <div class="mb-8">
+                            <label class="block text-soft-gray mb-4">Budget Range *</label>
+                            <div class="relative pt-1">
+                                <input type="range" id="budget-slider" min="1000" max="50000" value="15000" step="1000" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                                <div class="flex justify-between text-sm text-soft-gray mt-2">
+                                    <span>$1,000</span>
+                                    <span>$25,000</span>
+                                    <span>$50,000+</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <span class="text-2xl font-bold text-accent-gold" id="budget-display">$15,000</span>
+                                <p class="text-sm text-soft-gray mt-1">Estimated investment</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <label for="project-timeline" class="block text-soft-gray mb-2">Expected Timeline *</label>
+                            <select id="project-timeline" required class="w-full px-4 py-3 rounded-lg form-input">
+                                <option value="">Select Timeline</option>
+                                <option value="2-4">2-4 weeks (Rapid Prototype)</option>
+                                <option value="4-8">4-8 weeks (Standard Project)</option>
+                                <option value="8-12">8-12 weeks (Complex Build)</option>
+                                <option value="12+">12+ weeks (Enterprise Solution)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <button onclick="prevVisionStep()" class="px-6 py-3 rounded-lg btn-outline">
+                                <i class="fas fa-arrow-left mr-2"></i> Back
+                            </button>
+                            <button onclick="nextVisionStep()" class="px-6 py-3 rounded-lg btn-primary">
+                                Continue <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Finalize -->
+                <div id="vision-step-3" class="vision-step hidden">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 rounded-full bg-accent-gold/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-check-circle text-accent-gold text-3xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Review & Launch</h3>
+                        <p class="text-soft-gray">Review your vision and launch to our elite network</p>
+                    </div>
+                    
+                    <div class="max-w-2xl mx-auto">
+                        <div class="glass-gold rounded-xl p-6 mb-6">
+                            <h4 class="font-bold mb-4">Vision Summary</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-soft-gray">Project:</span>
+                                    <span class="font-medium" id="review-project-name">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-soft-gray">Industry:</span>
+                                    <span class="font-medium" id="review-industry">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-soft-gray">Budget:</span>
+                                    <span class="font-medium text-accent-gold" id="review-budget">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-soft-gray">Timeline:</span>
+                                    <span class="font-medium" id="review-timeline">-</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-700">
+                                <p class="text-sm text-soft-gray" id="review-vision-preview">-</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <button onclick="prevVisionStep()" class="px-6 py-3 rounded-lg btn-outline">
+                                <i class="fas fa-arrow-left mr-2"></i> Back
+                            </button>
+                            <button onclick="submitVision()" class="px-6 py-3 rounded-lg btn-primary">
+                                <i class="fas fa-rocket mr-2"></i> INITIATE CODE TO PROFIT CYCLE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ====== ELITE MATCHMAKING ====== -->
+        <div id="developers-section" class="hidden animate-fadeIn">
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold">Elite Matchmaking</h2>
+                    <div class="flex items-center space-x-4">
+                        <select id="developer-filter" class="px-4 py-2 rounded-lg form-input">
+                            <option value="all">All Developers</option>
+                            <option value="full-stack">Full Stack</option>
+                            <option value="frontend">Frontend</option>
+                            <option value="backend">Backend</option>
+                            <option value="ui-ux">UI/UX Design</option>
+                        </select>
+                        <button onclick="loadDevelopers()" class="px-4 py-2 rounded-lg btn-outline">
+                            <i class="fas fa-sync-alt mr-2"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="developers-list">
+                    <!-- Developers will be loaded here -->
+                </div>
+                
+                <div id="no-developers" class="text-center py-12 hidden">
+                    <i class="fas fa-search text-4xl text-accent-gold mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">No Developers Available</h3>
+                    <p class="text-soft-gray">All elite developers are currently engaged. Check back soon!</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ====== PROJECT PULSE ====== -->
+        <div id="projects-section" class="hidden animate-fadeIn">
+            <div class="glass-effect rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold">Project Pulse</h2>
+                    <div class="flex space-x-2">
+                        <button class="tab-button active" data-tab="active">Active</button>
+                        <button class="tab-button" data-tab="pending">Pending</button>
+                        <button class="tab-button" data-tab="completed">Completed</button>
+                    </div>
+                </div>
+                
+                <!-- Active Projects Tab -->
+                <div id="tab-active" class="tab-content">
+                    <div class="space-y-6" id="active-projects-list">
+                        <!-- Active projects will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Pending Projects Tab -->
+                <div id="tab-pending" class="tab-content hidden">
+                    <div class="space-y-6" id="pending-projects-list">
+                        <!-- Pending projects will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Completed Projects Tab -->
+                <div id="tab-completed" class="tab-content hidden">
+                    <div class="space-y-6" id="completed-projects-list">
+                        <!-- Completed projects will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ====== BILLING & FINANCE ====== -->
+        <div id="billing-section" class="hidden animate-fadeIn">
+            <div class="glass-effect rounded-xl p-6">
+                <h2 class="text-2xl font-bold mb-6">Billing & Finance Dashboard</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="glass-gold rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-soft-gray">Total Spent</p>
+                                <p class="text-3xl font-bold text-accent-gold">$24,850</p>
+                            </div>
+                            <i class="fas fa-dollar-sign text-accent-gold text-2xl"></i>
+                        </div>
+                        <p class="text-xs text-soft-gray">Across all projects</p>
+                    </div>
+                    
+                    <div class="glass-gold rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-soft-gray">Pending Payments</p>
+                                <p class="text-3xl font-bold text-accent-gold">$3,200</p>
+                            </div>
+                            <i class="fas fa-clock text-accent-gold text-2xl"></i>
+                        </div>
+                        <p class="text-xs text-soft-gray">Awaiting milestone approval</p>
+                    </div>
+                    
+                    <div class="glass-gold rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-soft-gray">Subscription</p>
+                                <p class="text-3xl font-bold text-accent-gold">$299</p>
+                            </div>
+                            <i class="fas fa-shield-alt text-accent-gold text-2xl"></i>
+                        </div>
+                        <p class="text-xs text-soft-gray">Monthly premium plan</p>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-800">
+                                <th class="text-left py-3 px-4 text-soft-gray font-medium">Date</th>
+                                <th class="text-left py-3 px-4 text-soft-gray font-medium">Project</th>
+                                <th class="text-left py-3 px-4 text-soft-gray font-medium">Description</th>
+                                <th class="text-left py-3 px-4 text-soft-gray font-medium">Amount</th>
+                                <th class="text-left py-3 px-4 text-soft-gray font-medium">Status</th>
+                                <th class="text-left py-3 px-4 text-soft-gray font-medium">Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finance-table">
+                            <!-- Finance records will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ====== DEFAULT DASHBOARD VIEW ====== -->
+        <div id="dashboard-default">
+            <!-- Charts & Recent Projects -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Investment Chart -->
+                <div class="glass-effect rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-6">Investment Distribution</h3>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="investmentChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Recent Projects -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold">Recent Projects</h3>
+                        <a href="#projects" class="text-sm text-accent-gold hover:underline">View All</a>
+                    </div>
+                    <div class="space-y-4" id="recent-projects-list">
+                        <!-- Recent projects will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="glass-effect rounded-xl p-6">
+                <h3 class="text-xl font-bold mb-6">Quick Actions</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <button onclick="showSection('new-project')" class="glass-gold rounded-xl p-6 text-left hover:scale-105 transition-transform">
+                        <i class="fas fa-rocket text-2xl text-accent-gold mb-4"></i>
+                        <h4 class="font-bold mb-2">New Vision</h4>
+                        <p class="text-sm text-soft-gray">Start a new project with elite developers</p>
+                    </button>
+                    
+                    <button onclick="showSection('profile')" class="glass-gold rounded-xl p-6 text-left hover:scale-105 transition-transform">
+                        <i class="fas fa-user-tie text-2xl text-accent-gold mb-4"></i>
+                        <h4 class="font-bold mb-2">Brand Identity</h4>
+                        <p class="text-sm text-soft-gray">Update your brand assets and preferences</p>
+                    </button>
+                    
+                    <button onclick="showSection('developers')" class="glass-gold rounded-xl p-6 text-left hover:scale-105 transition-transform">
+                        <i class="fas fa-code text-2xl text-accent-gold mb-4"></i>
+                        <h4 class="font-bold mb-2">Find Developers</h4>
+                        <p class="text-sm text-soft-gray">Browse available elite developers</p>
+                    </button>
+                    
+                    <button onclick="toggleChat()" class="glass-gold rounded-xl p-6 text-left hover:scale-105 transition-transform">
+                        <i class="fas fa-headset text-2xl text-accent-gold mb-4"></i>
+                        <h4 class="font-bold mb-2">Get Support</h4>
+                        <p class="text-sm text-soft-gray">24/7 communication with our team</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Project Pulse Modal -->
+        <div id="pulse-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden p-4">
+            <div class="glass-effect rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-2xl font-bold" id="pulse-project-name">Project Name</h2>
+                        <button onclick="closePulseModal()" class="text-soft-gray hover:text-accent-gold">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Pulse Line -->
+                    <div class="mb-8">
+                        <div class="pulse-line mb-4">
+                            <div class="pulse-progress" id="pulse-progress" style="width: 0%"></div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="milestone text-center" id="milestone-1">
+                                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-2">
+                                    <i class="fas fa-pencil-ruler"></i>
+                                </div>
+                                <p class="text-sm font-medium">UI/UX Design</p>
+                            </div>
+                            <div class="milestone text-center" id="milestone-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-2">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                <p class="text-sm font-medium">Frontend Dev</p>
+                            </div>
+                            <div class="milestone text-center" id="milestone-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-2">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <p class="text-sm font-medium">Backend Logic</p>
+                            </div>
+                            <div class="milestone text-center" id="milestone-4">
+                                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-2">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <p class="text-sm font-medium">Final Deployment</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Preview & Approval -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Live Preview</h3>
+                            <div class="glass-gold rounded-lg p-4 mb-4">
+                                <div class="aspect-video bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                                    <i class="fas fa-laptop-code text-3xl text-accent-gold"></i>
+                                </div>
+                                <button onclick="viewStaging()" class="w-full px-4 py-3 rounded-lg btn-outline">
+                                    <i class="fas fa-external-link-alt mr-2"></i> View Staging Environment
+                                </button>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h4 class="font-bold mb-3">Developer Updates</h4>
+                                <div class="space-y-3 max-h-60 overflow-y-auto" id="developer-updates">
+                                    <!-- Updates will appear here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Milestone Approval</h3>
+                            <div class="glass-gold rounded-lg p-6 mb-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p class="font-medium">Current Phase</p>
+                                        <p class="text-sm text-soft-gray" id="current-phase">UI/UX Design</p>
+                                    </div>
+                                    <span class="status-pill status-progress" id="phase-status">In Progress</span>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <p class="text-sm text-soft-gray mb-2">Phase Completion</p>
+                                    <div class="w-full h-2 rounded-full bg-gray-700">
+                                        <div class="h-full rounded-full bg-accent-gold" id="phase-progress" style="width: 65%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-soft-gray mt-1">
+                                        <span>Started: <span id="phase-start">Mar 1</span></span>
+                                        <span>Est. Completion: <span id="phase-end">Mar 15</span></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <p class="font-medium mb-2">Phase Deliverables</p>
+                                    <ul class="space-y-2" id="phase-deliverables">
+                                        <li class="flex items-center text-sm">
+                                            <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                                            <span>Wireframes completed</span>
+                                        </li>
+                                        <li class="flex items-center text-sm">
+                                            <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                                            <span>Color palette defined</span>
+                                        </li>
+                                        <li class="flex items-center text-sm">
+                                            <i class="far fa-circle text-soft-gray mr-2"></i>
+                                            <span>Final mockups pending</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <p class="font-medium mb-2">Release Payment</p>
+                                    <p class="text-2xl font-bold text-accent-gold" id="phase-payment">$1,500</p>
+                                </div>
+                                
+                                <button onclick="approvePhase()" class="w-full px-4 py-3 rounded-lg btn-primary mb-3">
+                                    <i class="fas fa-check-circle mr-2"></i> Approve Phase & Release Payment
+                                </button>
+                                
+                                <button onclick="requestRevision()" class="w-full px-4 py-3 rounded-lg btn-outline">
+                                    <i class="fas fa-redo mr-2"></i> Request Revision
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVWDmz4Cc9KLvBwf7iLsQiL_9HdjFw4Zk",
+            authDomain: "watchfree-d9e16.firebaseapp.com",
+            projectId: "watchfree-d16",
+            storageBucket: "watchfree-d9e16.firebasestorage.app",
+            messagingSenderId: "4487476314",
+            appId: "1:4487476314:web:6dfa4e14a8660705b15463",
+            measurementId: "G-0GY2JYKLHJ"
+        };
+        
+        // Firebase Service
+        const FirebaseService = {
+            auth: null,
+            db: null,
+            storage: null,
+            isDemoMode: false,
+            
+            initialize: function() {
+                try {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    
+                    this.auth = firebase.auth();
+                    this.db = firebase.firestore();
+                    this.storage = firebase.storage();
+                    
+                    // Enable offline persistence
+                    try {
+                        this.db.enablePersistence({ synchronizeTabs: true });
+                    } catch (error) {
+                        console.warn('Firestore persistence failed:', error);
+                    }
+                    
+                    console.log('Firebase initialized successfully');
+                    return true;
+                } catch (error) {
+                    console.error('Firebase initialization failed:', error);
+                    this.setupDemoMode();
+                    return false;
+                }
+            },
+            
+            setupDemoMode: function() {
+                this.isDemoMode = true;
+                console.log('Running in demo mode');
+            },
+            
+            // Authentication
+            getCurrentUser: function() {
+                return this.auth ? this.auth.currentUser : null;
+            },
+            
+            onAuthStateChanged: function(callback) {
+                if (this.auth) {
+                    return this.auth.onAuthStateChanged(callback);
+                }
+            },
+            
+            signOut: function() {
+                if (this.auth && !this.isDemoMode) {
+                    return this.auth.signOut();
+                }
+            },
+            
+            // User Data
+            getUserData: async function(userId, userType) {
+                if (this.isDemoMode) {
+                    const data = localStorage.getItem(`${userType}_data`);
+                    return {
+                        success: true,
+                        data: data ? JSON.parse(data) : null
+                    };
+                }
+                
+                try {
+                    const doc = await this.db.collection(userType + 's').doc(userId).get();
+                    if (doc.exists) {
+                        return {
+                            success: true,
+                            data: doc.data()
+                        };
+                    } else {
+                        return {
+                            success: false,
+                            error: 'User not found'
+                        };
+                    }
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            },
+            
+            updateUserData: async function(userId, userType, data) {
+                if (this.isDemoMode) {
+                    localStorage.setItem(`${userType}_data`, JSON.stringify(data));
+                    return { success: true };
+                }
+                
+                try {
+                    await this.db.collection(userType + 's').doc(userId).set({
+                        ...data,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                    return { success: true };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            },
+            
+            // Projects
+            createProject: async function(projectData) {
+                if (this.isDemoMode) {
+                    const projectId = 'demo_' + Date.now();
+                    projectData.id = projectId;
+                    const projects = JSON.parse(localStorage.getItem('host_projects') || '[]');
+                    projects.push(projectData);
+                    localStorage.setItem('host_projects', JSON.stringify(projects));
+                    
+                    return {
+                        success: true,
+                        id: projectId
+                    };
+                }
+                
+                try {
+                    projectData.createdAt = new Date().toISOString();
+                    projectData.updatedAt = new Date().toISOString();
+                    
+                    const docRef = await this.db.collection('projects').add(projectData);
+                    
+                    return {
+                        success: true,
+                        id: docRef.id
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            },
+            
+            getProjectsByHost: async function(hostId) {
+                if (this.isDemoMode) {
+                    const projects = JSON.parse(localStorage.getItem('host_projects') || '[]');
+                    return {
+                        success: true,
+                        projects: projects
+                    };
+                }
+                
+                try {
+                    const snapshot = await this.db.collection('projects')
+                        .where('hostId', '==', hostId)
+                        .orderBy('createdAt', 'desc')
+                        .get();
+                    
+                    const projects = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    return {
+                        success: true,
+                        projects: projects
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            },
+            
+            updateProject: async function(projectId, data) {
+                if (this.isDemoMode) {
+                    const projects = JSON.parse(localStorage.getItem('host_projects') || '[]');
+                    const index = projects.findIndex(p => p.id === projectId);
+                    if (index !== -1) {
+                        projects[index] = { ...projects[index], ...data };
+                        localStorage.setItem('host_projects', JSON.stringify(projects));
+                    }
+                    return { success: true };
+                }
+                
+                try {
+                    await this.db.collection('projects').doc(projectId).update({
+                        ...data,
+                        updatedAt: new Date().toISOString()
+                    });
+                    return { success: true };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            },
+            
+            // File Uploads
+            uploadBrandAsset: async function(file, userId) {
+                if (this.isDemoMode) {
+                    return {
+                        success: false,
+                        error: 'File upload not available in demo mode'
+                    };
+                }
+                
+                try {
+                    const storageRef = this.storage.ref();
+                    const fileRef = storageRef.child(`brand-assets/${userId}/${Date.now()}_${file.name}`);
+                    await fileRef.put(file);
+                    const url = await fileRef.getDownloadURL();
+                    
+                    return {
+                        success: true,
+                        url: url
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            },
+            
+            // Developers
+            getDevelopers: async function(filter = 'all') {
+                if (this.isDemoMode) {
+                    // Demo developers
+                    const developers = [
+                        {
+                            id: 1,
+                            name: 'Aarav Jain',
+                            role: 'Full Stack Developer',
+                            rating: 4.9,
+                            skills: ['React', 'Node.js', 'MongoDB', 'UI/UX'],
+                            badges: ['UI Master', 'E-commerce Expert', 'Top 5%'],
+                            rate: '$75/hour',
+                            successRate: 98,
+                            projectsCompleted: 24
+                        },
+                        {
+                            id: 2,
+                            name: 'Priya Kumar',
+                            role: 'AI/ML Specialist',
+                            rating: 4.8,
+                            skills: ['Python', 'TensorFlow', 'Data Science', 'React'],
+                            badges: ['AI Expert', 'Data Scientist', 'Top 5%'],
+                            rate: '$90/hour',
+                            successRate: 96,
+                            projectsCompleted: 18
+                        },
+                        {
+                            id: 3,
+                            name: 'Rohan Sharma',
+                            role: 'DevOps Engineer',
+                            rating: 5.0,
+                            skills: ['AWS', 'Docker', 'Kubernetes', 'CI/CD'],
+                            badges: ['DevOps Master', 'Security Expert', 'Top 5%'],
+                            rate: '$85/hour',
+                            successRate: 100,
+                            projectsCompleted: 32
+                        }
+                    ];
+                    
+                    return {
+                        success: true,
+                        developers: filter === 'all' ? developers : 
+                            developers.filter(dev => dev.skills.includes(filter))
+                    };
+                }
+                
+                try {
+                    let query = this.db.collection('developers').where('onboardingComplete', '==', true);
+                    
+                    if (filter !== 'all') {
+                        query = query.where('skills', 'array-contains', filter);
+                    }
+                    
+                    const snapshot = await query.limit(9).get();
+                    const developers = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    return {
+                        success: true,
+                        developers: developers
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            }
+        };
+        
+        // Global Variables
+        let currentUser = null;
+        let userData = null;
+        let isDemoMode = false;
+        let isOnline = true;
+        let currentVisionStep = 1;
+        let selectedProjectId = null;
+        let chatOpen = false;
+        
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                showLoading('Initializing Business Command Center...');
+                
+                // Initialize Firebase
+                const firebaseInitialized = FirebaseService.initialize();
+                
+                if (!firebaseInitialized) {
+                    console.warn("Firebase not initialized, using demo mode");
+                    isDemoMode = true;
+                    FirebaseService.setupDemoMode();
+                }
+                
+                // Check authentication
+                await checkAuth();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Initialize charts
+                initCharts();
+                
+                // Load initial data
+                loadInitialData();
+                
+                // Setup network listeners
+                setupNetworkListeners();
+                
+                setTimeout(() => {
+                    hideLoading();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showNotification('Error', 'Failed to initialize. Using demo mode.', 'error');
+                hideLoading();
+                enterDemoMode();
+            }
+        });
+        
+        // Check Authentication
+        async function checkAuth() {
+            try {
+                FirebaseService.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        await loadUserData(user.uid);
+                    } else {
+                        window.location.href = 'auth.html?action=login&type=host';
+                    }
+                });
+                
+                const user = FirebaseService.getCurrentUser();
+                if (user) {
+                    currentUser = user;
+                    await loadUserData(user.uid);
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                enterDemoMode();
+            }
+        }
+        
+        // Load User Data
+        async function loadUserData(userId) {
+            try {
+                const result = await FirebaseService.getUserData(userId, 'host');
+                
+                if (result.success && result.data) {
+                    userData = result.data;
+                    updateUI();
+                } else {
+                    // Create new host document
+                    userData = {
+                        uid: userId,
+                        email: currentUser.email,
+                        displayName: currentUser.displayName || 'Business Owner',
+                        companyName: '',
+                        userType: 'host',
+                        brandAssets: {},
+                        subscriptionPlan: 'basic',
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    await FirebaseService.updateUserData(userId, 'host', userData);
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                enterDemoMode();
+            }
+        }
+        
+        // Enter demo mode
+        function enterDemoMode() {
+            isDemoMode = true;
+            userData = {
+                displayName: 'Demo Business',
+                companyName: 'Demo Company Inc.',
+                userType: 'host',
+                brandAssets: {},
+                subscriptionPlan: 'premium'
+            };
+            updateUI();
+            loadDemoData();
+            
+            document.getElementById('offline-indicator').style.display = 'block';
+            document.getElementById('offline-indicator').innerHTML = 
+                '<i class="fas fa-database mr-2"></i> Demo Mode - Data stored locally';
+        }
+        
+        // Setup network listeners
+        function setupNetworkListeners() {
+            window.addEventListener('online', () => {
+                isOnline = true;
+                document.getElementById('offline-indicator').style.display = 'none';
+                showNotification('Back Online', 'Connection restored. Syncing data...', 'success');
+            });
+            
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                document.getElementById('offline-indicator').style.display = 'block';
+                showNotification('Offline Mode', 'You are now offline. Working with local data.', 'info');
+            });
+        }
+        
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Mobile menu
+            document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('active');
+            });
+            
+            // Navigation
+            document.querySelectorAll('a[href^="#"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href').substring(1);
+                    if (targetId) {
+                        e.preventDefault();
+                        showSection(targetId);
+                    }
+                });
+            });
+            
+            // Tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    showTab(tabId);
+                });
+            });
+            
+            // Brand color inputs
+            document.getElementById('color-primary').addEventListener('input', updateBrandPreview);
+            document.getElementById('color-secondary').addEventListener('input', updateBrandPreview);
+            document.getElementById('color-accent').addEventListener('input', updateBrandPreview);
+            
+            document.getElementById('color-primary-hex').addEventListener('input', updateColorFromHex);
+            document.getElementById('color-secondary-hex').addEventListener('input', updateColorFromHex);
+            document.getElementById('color-accent-hex').addEventListener('input', updateColorFromHex);
+            
+            // Font selections
+            document.getElementById('font-heading').addEventListener('change', updateBrandPreview);
+            document.getElementById('font-body').addEventListener('change', updateBrandPreview);
+            
+            // Vision portal steps
+            document.getElementById('budget-slider').addEventListener('input', function() {
+                const value = parseInt(this.value);
+                document.getElementById('budget-display').textContent = 
+                    value >= 50000 ? '$50,000+' : '$' + value.toLocaleString();
+            });
+            
+            // Logo upload
+            document.getElementById('logo-upload').addEventListener('change', handleLogoUpload);
+            
+            // Developer filter
+            document.getElementById('developer-filter').addEventListener('change', loadDevelopers);
+            
+            // Close sidebar on outside click (mobile)
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth < 768) {
+                    const sidebar = document.querySelector('.sidebar');
+                    const menuBtn = document.getElementById('mobile-menu-btn');
+                    if (sidebar && menuBtn && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+            
+            // Chat input enter key
+            document.getElementById('chat-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+            
+            // Drag and drop for logo
+            const dropZone = document.getElementById('logo-drop-zone');
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            dropZone.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleLogoFile(files[0]);
+                }
+            });
+        }
+        
+        // Initialize Charts
+        function initCharts() {
+            // Investment Chart
+            const investmentCtx = document.getElementById('investmentChart')?.getContext('2d');
+            if (investmentCtx) {
+                new Chart(investmentCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Development', 'Design', 'Testing', 'Maintenance'],
+                        datasets: [{
+                            data: [50, 25, 15, 10],
+                            backgroundColor: ['#D4AF37', '#B8860B', '#1A1A2E', '#2D2D44'],
+                            borderWidth: 0,
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#A0A0B0' }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+        }
+        
+        // Load Initial Data
+        function loadInitialData() {
+            loadRecentProjects();
+            loadDevelopers();
+            loadBillingHistory();
+            loadFinanceData();
+        }
+        
+        // Load Demo Data
+        function loadDemoData() {
+            loadRecentProjects();
+            loadDevelopers();
+            loadBillingHistory();
+            loadFinanceData();
+        }
+        
+        // Update UI
+        function updateUI() {
+            if (userData) {
+                const displayName = userData.displayName || 'Business Owner';
+                const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'B';
+                document.getElementById('user-initials').textContent = initials;
+                document.getElementById('user-name').textContent = displayName;
+                document.getElementById('user-company').textContent = userData.companyName || 'Company Name';
+                
+                // Update brand preview if assets exist
+                if (userData.brandAssets) {
+                    updateBrandPreviewFromData();
+                }
+            }
+        }
+        
+        // Show/Hide Sections
+        function showSection(sectionId) {
+            // Hide all sections
+            document.getElementById('profile-section').classList.add('hidden');
+            document.getElementById('new-project-section').classList.add('hidden');
+            document.getElementById('developers-section').classList.add('hidden');
+            document.getElementById('projects-section').classList.add('hidden');
+            document.getElementById('billing-section').classList.add('hidden');
+            document.getElementById('dashboard-default').classList.add('hidden');
+            
+            // Show selected section
+            const section = document.getElementById(sectionId + '-section');
+            if (section) {
+                section.classList.remove('hidden');
+                // If showing vision portal, reset to step 1
+                if (sectionId === 'new-project') {
+                    resetVisionPortal();
+                }
+                // If showing profile, show identity tab
+                if (sectionId === 'profile') {
+                    showTab('identity');
+                }
+                // If showing projects, show active tab
+                if (sectionId === 'projects') {
+                    showTab('active');
+                }
+            } else {
+                // Show default dashboard
+                document.getElementById('dashboard-default').classList.remove('hidden');
+            }
+            
+            // Close mobile sidebar
+            if (window.innerWidth < 768) {
+                document.querySelector('.sidebar').classList.remove('active');
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Show Tab
+        function showTab(tabId) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+                if (button.dataset.tab === tabId) {
+                    button.classList.add('active');
+                }
+            });
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Show selected tab content
+            const tabContent = document.getElementById('tab-' + tabId);
+            if (tabContent) {
+                tabContent.classList.remove('hidden');
+            }
+        }
+        
+        // ====== BRAND IDENTITY HUB FUNCTIONS ======
+        
+        // Update brand preview
+        function updateBrandPreview() {
+            const primaryColor = document.getElementById('color-primary').value;
+            const secondaryColor = document.getElementById('color-secondary').value;
+            const accentColor = document.getElementById('color-accent').value;
+            const headingFont = document.getElementById('font-heading').value;
+            const bodyFont = document.getElementById('font-body').value;
+            
+            // Update hex inputs
+            document.getElementById('color-primary-hex').value = primaryColor;
+            document.getElementById('color-secondary-hex').value = secondaryColor;
+            document.getElementById('color-accent-hex').value = accentColor;
+            
+            // Update preview colors
+            document.getElementById('preview-color-primary').style.backgroundColor = primaryColor;
+            document.getElementById('preview-color-secondary').style.backgroundColor = secondaryColor;
+            document.getElementById('preview-color-accent').style.backgroundColor = accentColor;
+            
+            // Update preview fonts
+            document.getElementById('brand-preview-name').style.fontFamily = headingFont;
+            document.getElementById('brand-preview-tagline').style.fontFamily = bodyFont;
+            document.getElementById('brand-preview-name').parentElement.nextElementSibling.nextElementSibling.style.fontFamily = bodyFont;
+        }
+        
+        function updateColorFromHex(e) {
+            const hexInput = e.target;
+            const colorInput = document.getElementById(hexInput.id.replace('-hex', ''));
+            colorInput.value = hexInput.value;
+            updateBrandPreview();
+        }
+        
+        // Handle logo upload
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleLogoFile(file);
+            }
+        }
+        
+        async function handleLogoFile(file) {
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Error', 'File size must be less than 5MB', 'error');
+                return;
+            }
+            
+            if (!file.type.match('image.*')) {
+                showNotification('Error', 'Please upload an image file', 'error');
+                return;
+            }
+            
+            if (!isDemoMode && currentUser) {
+                const result = await FirebaseService.uploadBrandAsset(file, currentUser.uid);
+                
+                if (result.success) {
+                    userData.brandAssets.logo = result.url;
+                    userData.brandAssets.logoName = file.name;
+                    
+                    await FirebaseService.updateUserData(currentUser.uid, 'host', {
+                        brandAssets: userData.brandAssets
+                    });
+                    
+                    updateLogoPreview(result.url, file.name);
+                    showNotification('Success', 'Logo uploaded successfully!', 'success');
+                } else {
+                    showNotification('Error', result.error, 'error');
+                }
+            } else {
+                // Demo mode
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    userData.brandAssets.logo = e.target.result;
+                    userData.brandAssets.logoName = file.name;
+                    localStorage.setItem('host_brand_assets', JSON.stringify(userData.brandAssets));
+                    updateLogoPreview(e.target.result, file.name);
+                    showNotification('Success', 'Logo saved locally (demo mode)', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function updateLogoPreview(url, fileName) {
+            const logoPreview = document.getElementById('logo-preview');
+            logoPreview.innerHTML = `<img src="${url}" class="w-full h-full object-contain rounded-lg">`;
+            document.getElementById('logo-name').textContent = fileName;
+            document.getElementById('uploaded-logo').classList.remove('hidden');
+        }
+        
+        function removeLogo() {
+            document.getElementById('uploaded-logo').classList.add('hidden');
+            document.getElementById('logo-preview').innerHTML = '<i class="fas fa-image text-accent-gold"></i>';
+            document.getElementById('logo-upload').value = '';
+            
+            if (userData && userData.brandAssets) {
+                delete userData.brandAssets.logo;
+                delete userData.brandAssets.logoName;
+                saveUserData();
+            }
+        }
+        
+        function updateBrandPreviewFromData() {
+            if (userData.brandAssets) {
+                if (userData.brandAssets.primaryColor) {
+                    document.getElementById('color-primary').value = userData.brandAssets.primaryColor;
+                    document.getElementById('color-primary-hex').value = userData.brandAssets.primaryColor;
+                }
+                if (userData.brandAssets.secondaryColor) {
+                    document.getElementById('color-secondary').value = userData.brandAssets.secondaryColor;
+                    document.getElementById('color-secondary-hex').value = userData.brandAssets.secondaryColor;
+                }
+                if (userData.brandAssets.accentColor) {
+                    document.getElementById('color-accent').value = userData.brandAssets.accentColor;
+                    document.getElementById('color-accent-hex').value = userData.brandAssets.accentColor;
+                }
+                if (userData.brandAssets.headingFont) {
+                    document.getElementById('font-heading').value = userData.brandAssets.headingFont;
+                }
+                if (userData.brandAssets.bodyFont) {
+                    document.getElementById('font-body').value = userData.brandAssets.bodyFont;
+                }
+                if (userData.brandAssets.logo) {
+                    const logoPreview = document.getElementById('logo-preview');
+                    logoPreview.innerHTML = `<img src="${userData.brandAssets.logo}" class="w-full h-full object-contain rounded-lg">`;
+                    document.getElementById('logo-name').textContent = userData.brandAssets.logoName || 'logo.png';
+                    document.getElementById('uploaded-logo').classList.remove('hidden');
+                }
+                
+                updateBrandPreview();
+            }
+        }
+        
+        function resetBrandAssets() {
+            document.getElementById('color-primary').value = '#D4AF37';
+            document.getElementById('color-secondary').value = '#0A0A0F';
+            document.getElementById('color-accent').value = '#1A1A2E';
+            document.getElementById('font-heading').value = 'Montserrat';
+            document.getElementById('font-body').value = 'Inter';
+            removeLogo();
+            updateBrandPreview();
+            showNotification('Reset', 'Brand assets reset to defaults', 'info');
+        }
+        
+        async function saveBrandAssets() {
+            const brandAssets = {
+                primaryColor: document.getElementById('color-primary').value,
+                secondaryColor: document.getElementById('color-secondary').value,
+                accentColor: document.getElementById('color-accent').value,
+                headingFont: document.getElementById('font-heading').value,
+                bodyFont: document.getElementById('font-body').value,
+                logo: userData.brandAssets?.logo,
+                logoName: userData.brandAssets?.logoName
+            };
+            
+            userData.brandAssets = brandAssets;
+            
+            try {
+                if (!isDemoMode && currentUser) {
+                    await FirebaseService.updateUserData(currentUser.uid, 'host', {
+                        brandAssets: brandAssets
+                    });
+                }
+                
+                // Save locally
+                localStorage.setItem('host_brand_assets', JSON.stringify(brandAssets));
+                
+                showNotification('Success', 'Brand assets updated!', 'success');
+                
+            } catch (error) {
+                console.error('Error saving brand assets:', error);
+                showNotification('Error', 'Failed to save brand assets', 'error');
+            }
+        }
+        
+        // ====== VISION PORTAL FUNCTIONS ======
+        
+        function resetVisionPortal() {
+            currentVisionStep = 1;
+            document.querySelectorAll('.vision-step').forEach(step => step.classList.add('hidden'));
+            document.getElementById('vision-step-1').classList.remove('hidden');
+            
+            // Reset progress dots
+            document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                if (index === 0) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // Clear form
+            document.getElementById('project-vision').value = '';
+            document.getElementById('project-name').value = '';
+            document.getElementById('project-industry').value = '';
+            document.getElementById('budget-slider').value = 15000;
+            document.getElementById('budget-display').textContent = '$15,000';
+            document.getElementById('project-timeline').value = '';
+        }
+        
+        function nextVisionStep() {
+            const currentStep = document.getElementById(`vision-step-${currentVisionStep}`);
+            const nextStep = document.getElementById(`vision-step-${currentVisionStep + 1}`);
+            
+            // Validate current step
+            if (currentVisionStep === 1) {
+                const vision = document.getElementById('project-vision').value.trim();
+                const name = document.getElementById('project-name').value.trim();
+                const industry = document.getElementById('project-industry').value;
+                
+                if (!vision || !name || !industry) {
+                    showNotification('Error', 'Please fill all required fields', 'error');
+                    return;
+                }
+                
+                // Update review
+                document.getElementById('review-project-name').textContent = name;
+                document.getElementById('review-industry').textContent = 
+                    document.getElementById('project-industry').options[document.getElementById('project-industry').selectedIndex].text;
+                document.getElementById('review-vision-preview').textContent = 
+                    vision.length > 150 ? vision.substring(0, 150) + '...' : vision;
+                
+            } else if (currentVisionStep === 2) {
+                const timeline = document.getElementById('project-timeline').value;
+                if (!timeline) {
+                    showNotification('Error', 'Please select a timeline', 'error');
+                    return;
+                }
+                
+                // Update review
+                document.getElementById('review-budget').textContent = 
+                    document.getElementById('budget-display').textContent;
+                document.getElementById('review-timeline').textContent = 
+                    document.getElementById('project-timeline').options[document.getElementById('project-timeline').selectedIndex].text;
+            }
+            
+            // Move to next step
+            currentStep.classList.add('hidden');
+            nextStep.classList.remove('hidden');
+            
+            // Update progress dots
+            document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                if (index < currentVisionStep + 1) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            currentVisionStep++;
+        }
+        
+        function prevVisionStep() {
+            if (currentVisionStep === 1) return;
+            
+            const currentStep = document.getElementById(`vision-step-${currentVisionStep}`);
+            const prevStep = document.getElementById(`vision-step-${currentVisionStep - 1}`);
+            
+            currentStep.classList.add('hidden');
+            prevStep.classList.remove('hidden');
+            
+            // Update progress dots
+            document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                if (index < currentVisionStep - 1) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            currentVisionStep--;
+        }
+        
+        async function submitVision() {
+            const visionData = {
+                name: document.getElementById('project-name').value.trim(),
+                vision: document.getElementById('project-vision').value.trim(),
+                industry: document.getElementById('project-industry').value,
+                budget: parseInt(document.getElementById('budget-slider').value),
+                timeline: document.getElementById('project-timeline').value,
+                hostId: currentUser ? currentUser.uid : 'demo_host',
+                hostName: userData.displayName,
+                hostCompany: userData.companyName || '',
+                status: 'open',
+                progress: 0,
+                brandAssets: userData.brandAssets || {}
+            };
+            
+            try {
+                showLoading('Submitting your vision to elite network...');
+                
+                let projectId;
+                if (!isDemoMode && currentUser) {
+                    const result = await FirebaseService.createProject(visionData);
+                    if (result.success) {
+                        projectId = result.id;
+                        
+                        // Update user's projects
+                        await FirebaseService.updateUserData(currentUser.uid, 'host', {
+                            projects: [...(userData.projects || []), projectId]
+                        });
+                    }
+                } else {
+                    // Demo mode
+                    projectId = 'demo_' + Date.now();
+                    visionData.id = projectId;
+                    
+                    // Save to localStorage
+                    const projects = JSON.parse(localStorage.getItem('host_projects') || '[]');
+                    projects.push(visionData);
+                    localStorage.setItem('host_projects', JSON.stringify(projects));
+                }
+                
+                setTimeout(() => {
+                    hideLoading();
+                    showNotification('Success', 'Vision submitted! Developers are reviewing your project.', 'success');
+                    
+                    // Reset and show dashboard
+                    resetVisionPortal();
+                    showSection('dashboard');
+                    
+                    // Reload projects
+                    loadRecentProjects();
+                    
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error submitting vision:', error);
+                hideLoading();
+                showNotification('Error', 'Failed to submit vision. Please try again.', 'error');
+            }
+        }
+        
+        // ====== ELITE MATCHMAKING FUNCTIONS ======
+        
+        async function loadDevelopers() {
+            const filter = document.getElementById('developer-filter').value;
+            const developersList = document.getElementById('developers-list');
+            const noDevelopers = document.getElementById('no-developers');
+            
+            try {
+                const result = await FirebaseService.getDevelopers(filter);
+                
+                if (result.success && result.developers.length > 0) {
+                    developersList.classList.remove('hidden');
+                    noDevelopers.classList.add('hidden');
+                    
+                    developersList.innerHTML = result.developers.map(dev => `
+                        <div class="glass-dark rounded-xl p-6 hover:scale-105 transition-transform">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center">
+                                    <div class="w-14 h-14 rounded-full gradient-gold flex items-center justify-center mr-4">
+                                        <span class="font-bold text-primary-dark text-lg">
+                                            ${dev.name.split(' ').map(n => n[0]).join('')}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold">${dev.name}</h4>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
+                                            <span class="text-sm text-soft-gray">${dev.rating}/5.0 • ${dev.successRate || 95}% Success</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                                    <i class="fas fa-check-circle mr-1"></i> Verified
+                                </span>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <p class="text-sm text-soft-gray mb-2">${dev.role}</p>
+                                <div class="flex flex-wrap gap-1 mb-3">
+                                    ${dev.skills.slice(0, 3).map(skill => `
+                                        <span class="text-xs px-2 py-1 rounded-full bg-gray-800 text-soft-gray">${skill}</span>
+                                    `).join('')}
+                                </div>
+                                <div class="flex flex-wrap gap-1">
+                                    ${dev.badges.map(badge => `
+                                        <span class="badge">${badge}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="text-sm">
+                                    <p class="text-soft-gray">Completed</p>
+                                    <p class="font-bold">${dev.projectsCompleted || 15}+ Projects</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-soft-gray text-sm">Rate</p>
+                                    <p class="font-bold text-accent-gold">${dev.rate}</p>
+                                </div>
+                            </div>
+                            
+                            <button onclick="hireDeveloper('${dev.id}', '${dev.name}')" class="w-full px-4 py-3 rounded-lg btn-primary">
+                                <i class="fas fa-handshake mr-2"></i> Approve Architect
+                            </button>
+                        </div>
+                    `).join('');
+                    
+                } else {
+                    developersList.classList.add('hidden');
+                    noDevelopers.classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error loading developers:', error);
+                developersList.innerHTML = `
+                    <div class="col-span-3 text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-4xl text-accent-gold mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Unable to load developers</h3>
+                        <p class="text-soft-gray">Please try again later</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function hireDeveloper(developerId, developerName) {
+            showNotification('Success', `Request sent to ${developerName}. They will contact you shortly.`, 'success');
+            
+            // Open chat with developer
+            setTimeout(() => {
+                toggleChat();
+                addChatMessage(`${developerName} has been assigned to your project. They will contact you soon.`, 'system');
+            }, 1000);
+        }
+        
+        // ====== PROJECT PULSE FUNCTIONS ======
+        
+        async function loadRecentProjects() {
+            const recentList = document.getElementById('recent-projects-list');
+            const activeList = document.getElementById('active-projects-list');
+            const pendingList = document.getElementById('pending-projects-list');
+            const completedList = document.getElementById('completed-projects-list');
+            
+            try {
+                let projects = [];
+                
+                if (!isDemoMode && currentUser) {
+                    const result = await FirebaseService.getProjectsByHost(currentUser.uid);
+                    if (result.success) {
+                        projects = result.projects;
+                    }
+                } else {
+                    // Demo data
+                    projects = JSON.parse(localStorage.getItem('host_projects') || '[]');
+                }
+                
+                // Update stats
+                updateProjectStats(projects);
+                
+                // Render recent projects
+                if (recentList) {
+                    recentList.innerHTML = projects.slice(0, 3).map(project => `
+                        <div class="glass-dark rounded-lg p-4 cursor-pointer hover:bg-gray-800/50" onclick="openProjectPulse('${project.id}')">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold">${project.name}</h4>
+                                <span class="status-pill status-${project.status}">${project.status}</span>
+                            </div>
+                            <div class="mb-2">
+                                <div class="flex justify-between text-sm text-soft-gray mb-1">
+                                    <span>Progress</span>
+                                    <span>${project.progress}%</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-gray-800">
+                                    <div class="h-full rounded-full bg-accent-gold" style="width: ${project.progress}%"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-sm text-soft-gray">
+                                <span>Developer: ${project.developer || 'Not assigned'}</span>
+                                <span>${project.timeline}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                // Render categorized projects
+                if (activeList && pendingList && completedList) {
+                    const activeProjects = projects.filter(p => p.status === 'progress');
+                    const pendingProjects = projects.filter(p => p.status === 'pending' || p.status === 'open');
+                    const completedProjects = projects.filter(p => p.status === 'completed');
+                    
+                    activeList.innerHTML = renderProjectList(activeProjects);
+                    pendingList.innerHTML = renderProjectList(pendingProjects);
+                    completedList.innerHTML = renderProjectList(completedProjects);
+                }
+                
+            } catch (error) {
+                console.error('Error loading projects:', error);
+            }
+        }
+        
+        function updateProjectStats(projects) {
+            const activeCount = projects.filter(p => p.status === 'progress').length;
+            const totalInvestment = projects.reduce((sum, p) => sum + (p.budget || 0), 0);
+            const uniqueDevelopers = new Set(projects.map(p => p.developer).filter(Boolean)).size;
+            
+            document.getElementById('active-projects-count').textContent = activeCount;
+            document.getElementById('total-investment').textContent = '$' + totalInvestment.toLocaleString();
+            document.getElementById('developers-engaged').textContent = uniqueDevelopers;
+            
+            // Calculate average project time (demo calculation)
+            if (projects.length > 0) {
+                document.getElementById('avg-project-time').textContent = '6 weeks';
+            }
+        }
+        
+        function renderProjectList(projects) {
+            if (projects.length === 0) {
+                return `
+                    <div class="text-center py-12">
+                        <i class="fas fa-folder-open text-3xl text-accent-gold mb-4"></i>
+                        <p class="text-soft-gray">No projects found</p>
+                    </div>
+                `;
+            }
+            
+            return projects.map(project => `
+                <div class="glass-dark rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="font-bold text-lg">${project.name}</h4>
+                            <p class="text-sm text-soft-gray">${project.industry} • Budget: $${project.budget?.toLocaleString() || '0'}</p>
+                        </div>
+                        <span class="status-pill status-${project.status}">${project.status}</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-soft-gray mb-1">
+                            <span>Overall Progress</span>
+                            <span>${project.progress}%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-gray-800">
+                            <div class="h-full rounded-full bg-accent-gold" style="width: ${project.progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-sm text-soft-gray">Developer</p>
+                            <p class="font-medium">${project.developer || 'Not assigned'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-soft-gray">Timeline</p>
+                            <p class="font-medium">${project.timeline || 'Not set'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="openProjectPulse('${project.id}')" class="px-4 py-2 rounded-lg btn-outline">
+                            <i class="fas fa-chart-line mr-2"></i> View Pulse
+                        </button>
+                        ${project.status === 'progress' ? `
+                            <button onclick="viewStaging('${project.id}')" class="px-4 py-2 rounded-lg btn-primary">
+                                <i class="fas fa-external-link-alt mr-2"></i> View Staging
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function openProjectPulse(projectId) {
+            selectedProjectId = projectId;
+            
+            // In a real app, load project data from database
+            // For demo, use mock data
+            const project = {
+                name: 'Luxury Jewelry E-commerce',
+                progress: 75,
+                currentPhase: 'Backend Logic',
+                phaseProgress: 65,
+                phaseStart: 'Mar 1',
+                phaseEnd: 'Mar 15',
+                phasePayment: '$1,500',
+                milestones: [
+                    { id: 1, name: 'UI/UX Design', status: 'completed' },
+                    { id: 2, name: 'Frontend Dev', status: 'completed' },
+                    { id: 3, name: 'Backend Logic', status: 'active' },
+                    { id: 4, name: 'Final Deployment', status: 'pending' }
+                ]
+            };
+            
+            // Update modal
+            document.getElementById('pulse-project-name').textContent = project.name;
+            document.getElementById('pulse-progress').style.width = project.progress + '%';
+            document.getElementById('current-phase').textContent = project.currentPhase;
+            document.getElementById('phase-progress').style.width = project.phaseProgress + '%';
+            document.getElementById('phase-start').textContent = project.phaseStart;
+            document.getElementById('phase-end').textContent = project.phaseEnd;
+            document.getElementById('phase-payment').textContent = project.phasePayment;
+            
+            // Update milestones
+            project.milestones.forEach(milestone => {
+                const element = document.getElementById('milestone-' + milestone.id);
+                if (element) {
+                    element.className = 'milestone text-center';
+                    if (milestone.status === 'completed') {
+                        element.classList.add('completed');
+                        element.querySelector('.fa').className = 'fas fa-check-circle text-green-400';
+                    } else if (milestone.status === 'active') {
+                        element.classList.add('active');
+                        element.querySelector('.fa').className = 'fas fa-spinner text-accent-gold';
+                    }
+                }
+            });
+            
+            // Show modal
+            document.getElementById('pulse-modal').classList.remove('hidden');
+        }
+        
+        function closePulseModal() {
+            document.getElementById('pulse-modal').classList.add('hidden');
+        }
+        
+        function approvePhase() {
+            showNotification('Success', 'Phase approved! Payment released to developer.', 'success');
+            setTimeout(() => {
+                closePulseModal();
+            }, 1500);
+        }
+        
+        function requestRevision() {
+            showNotification('Info', 'Revision request sent to developer.', 'info');
+        }
+        
+        function viewStaging(projectId) {
+            showNotification('Info', 'Opening staging environment...', 'info');
+            // In real app, this would open the staging URL
+            window.open('https://staging.example.com', '_blank');
+        }
+        
+        // ====== BILLING & FINANCE FUNCTIONS ======
+        
+        async function loadBillingHistory() {
+            const billingHistory = document.getElementById('billing-history');
+            const financeTable = document.getElementById('finance-table');
+            
+            // Demo data
+            const billingData = [
+                { date: '2024-02-01', description: 'Luxury Jewelry Project - Phase 1', amount: 5000, status: 'Paid' },
+                { date: '2024-01-15', description: 'Premium Subscription', amount: 299, status: 'Paid' },
+                { date: '2024-01-01', description: 'AI Analytics Dashboard - Final', amount: 7500, status: 'Paid' },
+                { date: '2023-12-15', description: 'Travel Platform - Phase 2', amount: 6000, status: 'Paid' },
+                { date: '2023-12-01', description: 'Premium Subscription', amount: 299, status: 'Paid' }
+            ];
+            
+            if (billingHistory) {
+                billingHistory.innerHTML = billingData.map(item => `
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/30">
+                        <td class="py-3 px-4">${item.date}</td>
+                        <td class="py-3 px-4">${item.description}</td>
+                        <td class="py-3 px-4">$${item.amount.toLocaleString()}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs ${item.status === 'Paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}">
+                                ${item.status}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <button onclick="downloadInvoice('${item.date}', '${item.description}', ${item.amount})" class="text-accent-gold hover:underline text-sm">
+                                <i class="fas fa-download mr-1"></i> Download
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            
+            if (financeTable) {
+                financeTable.innerHTML = billingData.map(item => `
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/30">
+                        <td class="py-3 px-4">${item.date}</td>
+                        <td class="py-3 px-4">${item.description.split(' - ')[0]}</td>
+                        <td class="py-3 px-4">${item.description}</td>
+                        <td class="py-3 px-4 font-medium">$${item.amount.toLocaleString()}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs ${item.status === 'Paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}">
+                                ${item.status}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <button onclick="downloadInvoice('${item.date}', '${item.description}', ${item.amount})" class="px-3 py-1 rounded-lg btn-outline text-xs">
+                                Invoice
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+        
+        function loadFinanceData() {
+            // This would load financial data from the database
+            // For now, it's handled by loadBillingHistory
+        }
+        
+        function generateInvoice() {
+            showNotification('Info', 'Generating new invoice...', 'info');
+            // In real app, this would integrate with Stripe/Razorpay
+        }
+        
+        function downloadInvoice(date, description, amount) {
+            showNotification('Success', 'Invoice downloaded as PDF', 'success');
+            // In real app, this would generate and download a PDF
+        }
+        
+        function downloadAllInvoices() {
+            showNotification('Info', 'Preparing all invoices for download...', 'info');
+            setTimeout(() => {
+                showNotification('Success', 'All invoices downloaded as ZIP', 'success');
+            }, 2000);
+        }
+        
+        // ====== COMMUNICATION BRIDGE FUNCTIONS ======
+        
+        function toggleChat() {
+            const chatBridge = document.getElementById('communication-bridge');
+            const toggleBtn = document.getElementById('chat-toggle-btn');
+            
+            if (chatOpen) {
+                chatBridge.classList.add('hidden');
+                toggleBtn.classList.remove('hidden');
+                chatOpen = false;
+            } else {
+                chatBridge.classList.remove('hidden');
+                toggleBtn.classList.add('hidden');
+                chatOpen = true;
+                loadChatMessages();
+            }
+        }
+        
+        function loadChatMessages() {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // Demo chat messages
+            const messages = [
+                { sender: 'developer', text: 'Hi! I\'ve completed the wireframes for the jewelry store. Would you like to review them?', time: '10:30 AM' },
+                { sender: 'host', text: 'Yes, please share the link. I\'ll review them this afternoon.', time: '10:45 AM' },
+                { sender: 'system', text: 'Aarav Jain has been assigned to your Luxury Jewelry project.', time: 'Yesterday' },
+                { sender: 'hr', text: 'Welcome to Codenprofit! I\'m your HR Lead. Let me know if you need any assistance.', time: 'Feb 1' }
+            ];
+            
+            chatMessages.innerHTML = messages.map(msg => `
+                <div class="mb-4">
+                    <div class="flex items-center mb-1">
+                        <span class="text-xs text-soft-gray">
+                            ${msg.sender === 'host' ? 'You' : 
+                              msg.sender === 'developer' ? 'Aarav Jain (Developer)' :
+                              msg.sender === 'hr' ? 'HR Lead' : 'System'}
+                        </span>
+                        <span class="text-xs text-soft-gray ml-auto">${msg.time}</span>
+                    </div>
+                    <div class="chat-bubble ${msg.sender === 'host' ? 'host' : msg.sender === 'system' || msg.sender === 'hr' ? 'system' : 'developer'}">
+                        ${msg.text}
+                    </div>
+                </div>
+            `).join('');
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const chatMessages = document.getElementById('chat-messages');
+            const now = new Date();
+            const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+            
+            chatMessages.innerHTML += `
+                <div class="mb-4">
+                    <div class="flex items-center mb-1">
+                        <span class="text-xs text-soft-gray">You</span>
+                        <span class="text-xs text-soft-gray ml-auto">${time}</span>
+                    </div>
+                    <div class="chat-bubble host">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Simulate reply after delay
+            setTimeout(() => {
+                addChatMessage('Thanks for your message! I\'ll review this and get back to you.', 'developer');
+            }, 1000);
+        }
+        
+        function addChatMessage(text, sender) {
+            const chatMessages = document.getElementById('chat-messages');
+            const now = new Date();
+            const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+            const senderName = sender === 'developer' ? 'Aarav Jain (Developer)' : 
+                              sender === 'hr' ? 'HR Lead' : 'System';
+            
+            chatMessages.innerHTML += `
+                <div class="mb-4">
+                    <div class="flex items-center mb-1">
+                        <span class="text-xs text-soft-gray">${senderName}</span>
+                        <span class="text-xs text-soft-gray ml-auto">${time}</span>
+                    </div>
+                    <div class="chat-bubble ${sender === 'host' ? 'host' : sender === 'system' || sender === 'hr' ? 'system' : 'developer'}">
+                        ${text}
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function openDeveloperChat() {
+            addChatMessage('Connecting you with your assigned developer...', 'system');
+        }
+        
+        function openHREscalation() {
+            addChatMessage('HR Lead notified. They will contact you shortly to resolve any issues.', 'system');
+            showNotification('HR Escalation', 'Our HR Lead has been notified and will contact you within 1 hour.', 'warning');
+        }
+        
+        // ====== UTILITY FUNCTIONS ======
+        
+        async function saveUserData() {
+            try {
+                if (!isDemoMode && currentUser) {
+                    await FirebaseService.updateUserData(currentUser.uid, 'host', {
+                        ...userData,
+                        updatedAt: new Date().toISOString()
+                    });
+                }
+                // Always save to localStorage
+                localStorage.setItem('host_data', JSON.stringify(userData));
+            } catch (error) {
+                console.error('Error saving user data:', error);
+            }
+        }
+        
+        function showNotification(title, message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notification-icon');
+            const notificationTitle = document.getElementById('notification-title');
+            const notificationMessage = document.getElementById('notification-message');
+            
+            // Set icon and color based on type
+            if (type === 'success') {
+                icon.className = 'w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-4';
+                icon.innerHTML = '<i class="fas fa-check text-green-500"></i>';
+            } else if (type === 'error') {
+                icon.className = 'w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-4';
+                icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+            } else if (type === 'info') {
+                icon.className = 'w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4';
+                icon.innerHTML = '<i class="fas fa-info-circle text-blue-500"></i>';
+            } else if (type === 'warning') {
+                icon.className = 'w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mr-4';
+                icon.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-500"></i>';
+            }
+            
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            // Show notification
+            notification.classList.add('show');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                hideNotification();
+            }, 5000);
+        }
+        
+        function hideNotification() {
+            document.getElementById('notification').classList.remove('show');
+        }
+        
+        function showLoading(message) {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                const messageElement = overlay.querySelector('p');
+                if (messageElement && message) {
+                    messageElement.textContent = message;
+                }
+            }
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        async function logout() {
+            try {
+                await FirebaseService.signOut();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Export for debugging
+        window.debugHost = {
+            getUserData: () => userData,
+            getMode: () => ({ isDemoMode, isOnline }),
+            resetData: () => {
+                localStorage.clear();
+                location.reload();
+            }
+        };
+        
+    </script>
+</body>
+</html>
