@@ -1,1 +1,2381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenprofit | Developer Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    
+    <style>
+        :root {
+            --primary-dark: #17252A;
+            --surface-teal: #2B7A78;
+            --accent-teal: #3AAFA9;
+            --soft-ice: #DEF2F1;
+            --pure-white: #FEFFFF;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--pure-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-effect {
+            background: rgba(43, 122, 120, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(58, 175, 169, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(23, 37, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(58, 175, 169, 0.2);
+        }
+        
+        .gradient-accent {
+            background: linear-gradient(90deg, rgba(58, 175, 169, 0.9) 0%, rgba(222, 242, 241, 0.7) 100%);
+        }
+        
+        .text-accent-teal { color: var(--accent-teal); }
+        .text-soft-ice { color: var(--soft-ice); }
+        
+        .btn-primary {
+            background-color: var(--accent-teal);
+            color: var(--primary-dark);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2B7A78;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(58, 175, 169, 0.3);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--accent-teal);
+            color: var(--accent-teal);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(58, 175, 169, 0.1);
+        }
+        
+        .form-input {
+            background: rgba(43, 122, 120, 0.3);
+            border: 1px solid rgba(43, 122, 120, 0.5);
+            color: var(--pure-white);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 3px rgba(58, 175, 169, 0.2);
+        }
+        
+        .status-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-available {
+            background: rgba(58, 175, 169, 0.6);
+            color: var(--pure-white);
+        }
+        
+        .status-inprogress {
+            background: rgba(222, 242, 241, 0.3);
+            color: var(--soft-ice);
+        }
+        
+        .status-completed {
+            background: rgba(58, 175, 169, 0.3);
+            color: var(--accent-teal);
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(58, 175, 169, 0.2);
+            color: var(--accent-teal);
+            border: 1px solid rgba(58, 175, 169, 0.3);
+            margin: 2px;
+        }
+        
+        .skill-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(58, 175, 169, 0.2);
+            color: var(--accent-teal);
+            border-radius: 15px;
+            font-size: 12px;
+            margin: 2px;
+        }
+        
+        .strike-meter {
+            width: 100%;
+            height: 6px;
+            background: rgba(222, 242, 241, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .strike-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .strike-safe { background: var(--accent-teal); }
+        .strike-warning { background: #f59e0b; }
+        .strike-danger { background: #ef4444; }
+        
+        .sidebar {
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+        
+        .onboarding-step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .onboarding-step.active {
+            display: block;
+        }
+        
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(222, 242, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-dot.active {
+            background: var(--accent-teal);
+            transform: scale(1.2);
+        }
+        
+        .offline-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f59e0b;
+            color: #17252A;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .error-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(23, 37, 42, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(58, 175, 169, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-teal);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 40;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .onboarding-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Offline Indicator -->
+    <div id="offline-indicator" class="offline-indicator">
+        <i class="fas fa-wifi-slash mr-2"></i> You are currently offline. Working in demo mode.
+    </div>
+    
+    <!-- Error Toast -->
+    <div id="error-toast" class="error-toast">
+        <span id="error-message"></span>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p class="text-soft-ice">Initializing Codenprofit...</p>
+    </div>
+    
+    <!-- Onboarding Overlay (for new users) -->
+    <div id="onboarding-overlay" class="fixed inset-0 z-50 bg-primary-dark flex items-center justify-center hidden">
+        <div class="onboarding-container w-full max-w-4xl p-8">
+            <!-- Progress Indicator -->
+            <div class="flex justify-center mb-12">
+                <div class="flex items-center space-x-4">
+                    <div class="progress-dot active" data-step="1"></div>
+                    <div class="w-8 h-1 bg-soft-ice/30"></div>
+                    <div class="progress-dot" data-step="2"></div>
+                    <div class="w-8 h-1 bg-soft-ice/30"></div>
+                    <div class="progress-dot" data-step="3"></div>
+                    <div class="w-8 h-1 bg-soft-ice/30"></div>
+                    <div class="progress-dot" data-step="4"></div>
+                </div>
+            </div>
+            
+            <!-- Step 1: Welcome Animation -->
+            <div id="step-1" class="onboarding-step active">
+                <div class="text-center">
+                    <div class="mb-8">
+                        <div class="w-32 h-32 rounded-full gradient-accent flex items-center justify-center mx-auto mb-6 pulse-animation">
+                            <span class="font-bold text-primary-dark text-5xl">C</span>
+                        </div>
+                        <h1 class="text-5xl font-bold mb-4">Welcome to <span class="text-accent-teal">Codenprofit</span></h1>
+                        <p class="text-2xl text-soft-ice mb-8">Turn Your Code into Commercial Capital</p>
+                        <div class="glass-effect rounded-xl p-6 max-w-2xl mx-auto mb-8">
+                            <p class="text-lg">The elite marketplace bridging the gap between student talent and real-world business impact.</p>
+                        </div>
+                    </div>
+                    <button onclick="nextStep()" class="px-8 py-4 rounded-lg btn-primary text-lg font-semibold">
+                        Begin Your Journey <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Role Selection -->
+            <div id="step-2" class="onboarding-step">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-4">Define Your Role</h2>
+                    <p class="text-soft-ice text-lg">Select your primary expertise area</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="role-card glass-effect rounded-xl p-6 cursor-pointer transition-transform hover:scale-105" data-role="full-stack">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-layer-group text-accent-teal text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-center mb-2">Full Stack Developer</h3>
+                        <p class="text-soft-ice text-center">Frontend + Backend mastery</p>
+                    </div>
+                    
+                    <div class="role-card glass-effect rounded-xl p-6 cursor-pointer transition-transform hover:scale-105" data-role="frontend">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-palette text-accent-teal text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-center mb-2">Frontend Developer</h3>
+                        <p class="text-soft-ice text-center">UI/UX & client-side expertise</p>
+                    </div>
+                    
+                    <div class="role-card glass-effect rounded-xl p-6 cursor-pointer transition-transform hover:scale-105" data-role="backend">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-server text-accent-teal text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-center mb-2">Backend Developer</h3>
+                        <p class="text-soft-ice text-center">Server, database & API specialist</p>
+                    </div>
+                    
+                    <div class="role-card glass-effect rounded-xl p-6 cursor-pointer transition-transform hover:scale-105" data-role="ui-ux">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-paint-brush text-accent-teal text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-center mb-2">UI/UX Designer</h3>
+                        <p class="text-soft-ice text-center">Design systems & user experience</p>
+                    </div>
+                    
+                    <div class="role-card glass-effect rounded-xl p-6 cursor-pointer transition-transform hover:scale-105" data-role="devops">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-cloud text-accent-teal text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-center mb-2">DevOps Engineer</h3>
+                        <p class="text-soft-ice text-center">Infrastructure & deployment</p>
+                    </div>
+                    
+                    <div class="role-card glass-effect rounded-xl p-6 cursor-pointer transition-transform hover:scale-105" data-role="ai-ml">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-brain text-accent-teal text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-center mb-2">AI/ML Specialist</h3>
+                        <p class="text-soft-ice text-center">Intelligent systems & data science</p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button onclick="prevStep()" class="px-6 py-3 rounded-lg btn-outline">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <button onclick="nextStep()" class="px-6 py-3 rounded-lg btn-primary">
+                        Continue <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Skills & Expertise -->
+            <div id="step-3" class="onboarding-step">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-4">Your Skills & Expertise</h2>
+                    <p class="text-soft-ice text-lg">Select your technical skills (Select at least 3)</p>
+                </div>
+                
+                <div class="glass-effect rounded-xl p-6 mb-6">
+                    <div class="flex flex-wrap gap-2 mb-6" id="selected-skills">
+                        <!-- Selected skills will appear here -->
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="JavaScript">JavaScript</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="React">React</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="Node.js">Node.js</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="Python">Python</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="MongoDB">MongoDB</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="UI/UX">UI/UX</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="API Development">API Development</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="Git">Git</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="Firebase">Firebase</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="AWS">AWS</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="Docker">Docker</button>
+                        <button class="skill-option px-4 py-3 rounded-lg glass-dark hover:bg-surface-teal/30 transition-colors" data-skill="React Native">React Native</button>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="block text-soft-ice mb-2">Add Custom Skill</label>
+                        <div class="flex">
+                            <input type="text" id="custom-skill-input" class="flex-grow px-4 py-3 rounded-l-lg form-input" placeholder="Enter a skill">
+                            <button onclick="addCustomSkill()" class="px-4 py-3 rounded-r-lg btn-primary">Add</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button onclick="prevStep()" class="px-6 py-3 rounded-lg btn-outline">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <button onclick="nextStep()" class="px-6 py-3 rounded-lg btn-primary" id="continue-step3" disabled>
+                        Continue <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Portfolio & Finalize -->
+            <div id="step-4" class="onboarding-step">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-4">Complete Your Profile</h2>
+                    <p class="text-soft-ice text-lg">Add your portfolio and finalize your elite developer profile</p>
+                </div>
+                
+                <div class="glass-effect rounded-xl p-6 mb-6">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="portfolio-url" class="block text-soft-ice mb-2">Portfolio URL</label>
+                            <input type="url" id="portfolio-url" class="w-full px-4 py-3 rounded-lg form-input" placeholder="https://yourportfolio.com">
+                        </div>
+                        
+                        <div>
+                            <label for="developer-bio" class="block text-soft-ice mb-2">Bio/Introduction</label>
+                            <textarea id="developer-bio" rows="4" class="w-full px-4 py-3 rounded-lg form-input" placeholder="Tell us about your experience, projects, and what makes you part of the top 5%..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label for="hourly-rate" class="block text-soft-ice mb-2">Expected Hourly Rate (USD)</label>
+                            <input type="number" id="hourly-rate" class="w-full px-4 py-3 rounded-lg form-input" placeholder="e.g., 25" min="10" max="200">
+                        </div>
+                        
+                        <div class="glass-dark p-4 rounded-lg">
+                            <h4 class="font-bold mb-2 text-accent-teal">Elite Network Benefits</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-accent-teal mr-2 mt-1"></i>
+                                    <span>Access to 50+ real-world business projects</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-accent-teal mr-2 mt-1"></i>
+                                    <span>Direct connection with business owners (no agency markup)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-accent-teal mr-2 mt-1"></i>
+                                    <span>24/7 support from HR Lead and community</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-accent-teal mr-2 mt-1"></i>
+                                    <span>Badge system to showcase your expertise</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-accent-teal mr-2 mt-1"></i>
+                                    <span>Commercial capital tracking and financial tools</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button onclick="prevStep()" class="px-6 py-3 rounded-lg btn-outline">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <button onclick="completeOnboarding()" class="px-6 py-3 rounded-lg btn-primary">
+                        Complete Onboarding & Enter Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard (hidden until onboarding complete) -->
+    <div id="dashboard-container" class="hidden">
+        <!-- Offline Mode Indicator in Dashboard -->
+        <div id="dashboard-offline-indicator" class="offline-indicator hidden">
+            <i class="fas fa-wifi-slash mr-2"></i> Offline Mode - Data may not sync with server
+        </div>
+        
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="md:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-lg glass-effect flex items-center justify-center">
+            <i class="fas fa-bars text-accent-teal"></i>
+        </button>
+        
+        <!-- Sidebar -->
+        <div class="sidebar glass-dark fixed left-0 top-0 h-screen overflow-y-auto">
+            <!-- Logo -->
+            <div class="p-6 border-b border-surface-teal/30">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full gradient-accent flex items-center justify-center">
+                        <span class="font-bold text-primary-dark text-lg">C</span>
+                    </div>
+                    <span class="text-xl font-bold text-accent-teal tracking-wider">CODENPROFIT</span>
+                </div>
+                <p class="text-xs text-soft-ice mt-2">Developer Dashboard</p>
+                <div id="connection-status" class="mt-2 flex items-center text-xs">
+                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                    <span class="text-green-400">Online</span>
+                </div>
+            </div>
+            
+            <!-- User Info -->
+            <div class="p-6 border-b border-surface-teal/30">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full gradient-accent flex items-center justify-center">
+                        <span class="font-bold text-primary-dark text-lg" id="user-initials">D</span>
+                    </div>
+                    <div>
+                        <p class="font-semibold" id="user-name">Developer</p>
+                        <p class="text-sm text-soft-ice" id="user-role">Full Stack Developer</p>
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
+                            <span class="text-xs text-soft-ice" id="user-rating">5.0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Strike Meter -->
+                <div class="mt-4">
+                    <div class="flex justify-between text-xs text-soft-ice mb-1">
+                        <span>Professional Score</span>
+                        <span id="strike-percentage">100%</span>
+                    </div>
+                    <div class="strike-meter">
+                        <div id="strike-fill" class="strike-fill strike-safe" style="width: 100%"></div>
+                    </div>
+                    <p class="text-xs text-soft-ice mt-1" id="strike-status">Clean record - 0 strikes</p>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#dashboard" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#marketplace" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-store mr-3"></i>
+                            Marketplace
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#my-projects" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-project-diagram mr-3"></i>
+                            My Projects
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#earnings" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-chart-line mr-3"></i>
+                            Earnings
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#profile" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-user mr-3"></i>
+                            Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#connection" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-headset mr-3"></i>
+                            Connection
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#commercial-tools" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-tools mr-3"></i>
+                            Commercial Tools
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Bottom Links -->
+            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-surface-teal/30">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="index.html" class="flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors">
+                            <i class="fas fa-home mr-3"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <button onclick="logout()" class="w-full flex items-center p-3 rounded-lg text-soft-ice hover:bg-surface-teal/30 hover:text-accent-teal transition-colors text-left">
+                            <i class="fas fa-sign-out-alt mr-3"></i>
+                            Logout
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="md:ml-64 p-4 md:p-6 min-h-screen">
+            <!-- Header -->
+            <header class="mb-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold">Developer Command Center</h1>
+                        <p class="text-soft-ice">Turn your skills into commercial capital</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex items-center space-x-4">
+                        <button onclick="refreshMarketplace()" class="px-4 py-2 rounded-lg btn-outline">
+                            <i class="fas fa-sync-alt mr-2"></i> Refresh
+                        </button>
+                        <button onclick="checkConnection()" class="px-4 py-2 rounded-lg glass-effect">
+                            <i class="fas fa-wifi mr-2"></i> Check Connection
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Connection Status Banner -->
+            <div id="firestore-status" class="glass-effect rounded-xl p-4 mb-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-database mr-3 text-accent-teal"></i>
+                        <div>
+                            <p class="font-medium" id="firestore-status-title">Firestore Status</p>
+                            <p class="text-sm text-soft-ice" id="firestore-status-message"></p>
+                        </div>
+                    </div>
+                    <button onclick="hideFirestoreStatus()" class="text-soft-ice hover:text-accent-teal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Network Stats -->
+            <div class="glass-effect rounded-xl p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-6">Our Elite Network</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-accent-teal mb-2">150+</div>
+                        <p class="text-soft-ice">Verified Developers</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-accent-teal mb-2">50+</div>
+                        <p class="text-soft-ice">Active Projects</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-accent-teal mb-2">$0</div>
+                        <p class="text-soft-ice">Agency Markup</p>
+                    </div>
+                </div>
+                <div class="mt-6 text-center text-sm text-soft-ice">
+                    <p>The top 5% of student talent curated into our elite network</p>
+                </div>
+            </div>
+            
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Stat 1 -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-soft-ice">Total Earnings</p>
+                            <p class="text-3xl font-bold text-accent-teal" id="total-earnings">$0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-accent-teal/20 flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-accent-teal"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stat 2 -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-soft-ice">Pending Payments</p>
+                            <p class="text-3xl font-bold text-accent-teal" id="pending-payments">$0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-accent-teal/20 flex items-center justify-center">
+                            <i class="fas fa-clock text-accent-teal"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stat 3 -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-soft-ice">Active Projects</p>
+                            <p class="text-3xl font-bold text-accent-teal" id="active-projects">0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-accent-teal/20 flex items-center justify-center">
+                            <i class="fas fa-project-diagram text-accent-teal"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stat 4 -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-soft-ice">Avg. Rating</p>
+                            <p class="text-3xl font-bold text-accent-teal" id="avg-rating">0/5.0</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-accent-teal/20 flex items-center justify-center">
+                            <i class="fas fa-star text-accent-teal"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts & Marketplace -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Earnings Chart -->
+                <div class="glass-effect rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-6">Earnings Trend</h3>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="earningsChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Available Projects -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold">Available Projects</h3>
+                        <a href="#marketplace" class="text-sm text-accent-teal hover:underline">View All</a>
+                    </div>
+                    <div class="space-y-4" id="available-projects-list">
+                        <!-- Projects will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Projects -->
+            <div class="glass-effect rounded-xl p-6 mb-8">
+                <h3 class="text-xl font-bold mb-6">My Active Projects</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-surface-teal/50">
+                                <th class="text-left py-3 px-4 text-soft-ice font-medium">Project</th>
+                                <th class="text-left py-3 px-4 text-soft-ice font-medium">Client</th>
+                                <th class="text-left py-3 px-4 text-soft-ice font-medium">Progress</th>
+                                <th class="text-left py-3 px-4 text-soft-ice font-medium">Deadline</th>
+                                <th class="text-left py-3 px-4 text-soft-ice font-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="my-projects-list">
+                            <!-- Projects will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Badges & Skills -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Skills -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold">My Skills</h3>
+                        <button onclick="editSkills()" class="text-sm text-accent-teal hover:underline">
+                            <i class="fas fa-edit mr-2"></i> Edit
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="skills-list">
+                        <!-- Skills will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Badges -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold">Earned Badges</h3>
+                        <span class="text-sm text-soft-ice" id="badges-count">0 badges</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="badges-list">
+                        <!-- Badges will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connection Section -->
+            <div class="glass-effect rounded-xl p-6 mb-8" id="connection-section">
+                <h3 class="text-xl font-bold mb-6">24/7 Connection Hub</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-user-tie text-accent-teal text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold mb-2">HR Lead Support</h4>
+                        <p class="text-sm text-soft-ice">Direct line to our HR Lead for professional guidance</p>
+                        <button onclick="openHRChat()" class="mt-4 px-4 py-2 rounded-lg btn-outline text-sm">
+                            <i class="fas fa-comment mr-2"></i> Open Chat
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-users text-accent-teal text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold mb-2">Developer Community</h4>
+                        <p class="text-sm text-soft-ice">Connect with 150+ elite developers</p>
+                        <button onclick="openCommunity()" class="mt-4 px-4 py-2 rounded-lg btn-outline text-sm">
+                            <i class="fas fa-users mr-2"></i> Join Community
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-full bg-accent-teal/20 flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-headset text-accent-teal text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold mb-2">Client Communication</h4>
+                        <p class="text-sm text-soft-ice">Direct bridge to project hosts</p>
+                        <button onclick="openClientChat()" class="mt-4 px-4 py-2 rounded-lg btn-outline text-sm">
+                            <i class="fas fa-comments mr-2"></i> Message Clients
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Commercial Tools -->
+            <div class="glass-effect rounded-xl p-6 mb-8" id="commercial-tools-section">
+                <h3 class="text-xl font-bold mb-6">Commercial & Support Tools</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass-dark rounded-lg p-4">
+                        <i class="fas fa-key text-accent-teal text-2xl mb-3"></i>
+                        <h4 class="font-bold mb-2">Premium API Keys</h4>
+                        <p class="text-sm text-soft-ice mb-3">Access to premium development APIs</p>
+                        <button onclick="requestAPIKeys()" class="w-full px-3 py-2 rounded-lg btn-outline text-sm">
+                            Request Access
+                        </button>
+                    </div>
+                    
+                    <div class="glass-dark rounded-lg p-4">
+                        <i class="fas fa-server text-accent-teal text-2xl mb-3"></i>
+                        <h4 class="font-bold mb-2">Hosting Environment</h4>
+                        <p class="text-sm text-soft-ice mb-3">Dedicated hosting for project deployment</p>
+                        <button onclick="setupHosting()" class="w-full px-3 py-2 rounded-lg btn-outline text-sm">
+                            Setup Hosting
+                        </button>
+                    </div>
+                    
+                    <div class="glass-dark rounded-lg p-4">
+                        <i class="fas fa-file-invoice-dollar text-accent-teal text-2xl mb-3"></i>
+                        <h4 class="font-bold mb-2">Invoice Generator</h4>
+                        <p class="text-sm text-soft-ice mb-3">Create professional invoices for clients</p>
+                        <button onclick="generateInvoice()" class="w-full px-3 py-2 rounded-lg btn-outline text-sm">
+                            Generate Invoice
+                        </button>
+                    </div>
+                    
+                    <div class="glass-dark rounded-lg p-4">
+                        <i class="fas fa-chart-pie text-accent-teal text-2xl mb-3"></i>
+                        <h4 class="font-bold mb-2">Earnings Analytics</h4>
+                        <p class="text-sm text-soft-ice mb-3">Track your commercial capital growth</p>
+                        <button onclick="viewAnalytics()" class="w-full px-3 py-2 rounded-lg btn-outline text-sm">
+                            View Analytics
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Edit Modal -->
+            <div id="profile-edit-modal" class="glass-effect rounded-xl p-6 mb-8 hidden">
+                <h3 class="text-2xl font-bold mb-6">Edit Profile</h3>
+                <form id="profile-edit-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="edit-name" class="block text-soft-ice mb-2">Display Name</label>
+                            <input type="text" id="edit-name" class="w-full px-4 py-3 rounded-lg form-input" value="Developer Name">
+                        </div>
+                        <div>
+                            <label for="edit-role" class="block text-soft-ice mb-2">Primary Role</label>
+                            <select id="edit-role" class="w-full px-4 py-3 rounded-lg form-input">
+                                <option value="full-stack">Full Stack Developer</option>
+                                <option value="frontend">Frontend Developer</option>
+                                <option value="backend">Backend Developer</option>
+                                <option value="ui-ux">UI/UX Designer</option>
+                                <option value="devops">DevOps Engineer</option>
+                                <option value="ai-ml">AI/ML Specialist</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="edit-portfolio" class="block text-soft-ice mb-2">Portfolio URL</label>
+                        <input type="url" id="edit-portfolio" class="w-full px-4 py-3 rounded-lg form-input" placeholder="https://yourportfolio.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-soft-ice mb-2">Skills</label>
+                        <div class="flex flex-wrap gap-2 mb-4" id="edit-skills-list">
+                            <!-- Skills will be loaded here -->
+                        </div>
+                        <div class="flex">
+                            <input type="text" id="new-skill-input" class="flex-grow px-4 py-3 rounded-l-lg form-input" placeholder="Add a skill">
+                            <button type="button" onclick="addNewSkill()" class="px-4 py-3 rounded-r-lg btn-primary">Add</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="edit-bio" class="block text-soft-ice mb-2">Bio</label>
+                        <textarea id="edit-bio" rows="4" class="w-full px-4 py-3 rounded-lg form-input" placeholder="Tell us about your experience and expertise..."></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="cancelEditProfile()" class="px-6 py-3 rounded-lg btn-outline">Cancel</button>
+                        <button type="submit" class="px-6 py-3 rounded-lg btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="fixed top-6 right-6 glass-effect rounded-lg p-4 shadow-lg z-50 transform translate-x-full transition-transform duration-300 max-w-sm">
+        <div class="flex items-center">
+            <div id="notification-icon" class="w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-check"></i>
+            </div>
+            <div>
+                <p class="font-medium" id="notification-title">Success!</p>
+                <p class="text-sm text-soft-ice" id="notification-message"></p>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVWDmz4Cc9KLvBwf7iLsQiL_9HdjFw4Zk",
+            authDomain: "watchfree-d9e16.firebaseapp.com",
+            projectId: "watchfree-d16",
+            storageBucket: "watchfree-d9e16.firebasestorage.app",
+            messagingSenderId: "4487476314",
+            appId: "1:4487476314:web:6dfa4e14a8660705b15463",
+            measurementId: "G-0GY2JYKLHJ"
+        };
+        
+        // Global Variables
+        let auth = null;
+        let db = null;
+        let currentUser = null;
+        let userData = null;
+        let onboardingData = {
+            role: '',
+            skills: [],
+            portfolio: '',
+            bio: '',
+            hourlyRate: 0
+        };
+        let currentStep = 1;
+        let isOnline = true;
+        let firestoreAvailable = false;
+        let isDemoMode = false;
+        
+        // Error types for better error handling
+        const ERROR_TYPES = {
+            FIRESTORE_PERMISSION_DENIED: 'permission-denied',
+            FIRESTORE_UNAVAILABLE: 'unavailable',
+            OFFLINE: 'offline',
+            NETWORK_ERROR: 'network-error',
+            AUTH_ERROR: 'auth-error'
+        };
+        
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Show loading overlay
+                showLoading('Initializing Codenprofit...');
+                
+                // Initialize Firebase
+                await initializeFirebase();
+                
+                // Check authentication
+                await checkAuth();
+                
+                // Setup event listeners
+                setupOnboardingListeners();
+                setupNetworkListeners();
+                
+                // Hide loading
+                setTimeout(() => {
+                    hideLoading();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Failed to initialize application. Using demo mode.', ERROR_TYPES.NETWORK_ERROR);
+                hideLoading();
+                enterDemoMode();
+            }
+        });
+        
+        // Initialize Firebase with error handling
+        async function initializeFirebase() {
+            try {
+                // Check if Firebase is already initialized
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                
+                auth = firebase.auth();
+                db = firebase.firestore();
+                
+                // Enable offline persistence with error handling
+                try {
+                    await db.enablePersistence({ synchronizeTabs: true });
+                    console.log("Firebase Firestore persistence enabled");
+                } catch (persistenceError) {
+                    console.warn("Firestore persistence failed:", persistenceError);
+                    // Continue without persistence
+                }
+                
+                // Test Firestore connection
+                await testFirestoreConnection();
+                
+                console.log("Firebase initialized successfully");
+                firestoreAvailable = true;
+                
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                firestoreAvailable = false;
+                
+                // Set default auth and db to prevent errors
+                auth = { 
+                    onAuthStateChanged: (callback) => callback(null),
+                    currentUser: null,
+                    signOut: () => Promise.resolve()
+                };
+                db = null;
+                
+                throw error;
+            }
+        }
+        
+        // Test Firestore connection
+        async function testFirestoreConnection() {
+            try {
+                // Try a simple read operation to test connection
+                const testDoc = await db.collection('_test').doc('connection').get({
+                    source: 'server'
+                }).timeout(5000); // 5 second timeout
+                
+                return true;
+            } catch (error) {
+                console.warn("Firestore connection test failed:", error);
+                
+                // Check error type
+                if (error.code === 'permission-denied') {
+                    showFirestoreStatus(
+                        'Permission Denied',
+                        'Firestore permissions not configured. Working in demo mode.',
+                        'warning'
+                    );
+                } else if (error.code === 'unavailable') {
+                    showFirestoreStatus(
+                        'Firestore Unavailable',
+                        'Cannot connect to Firestore backend. Working offline.',
+                        'warning'
+                    );
+                } else {
+                    showFirestoreStatus(
+                        'Connection Issue',
+                        'Unable to connect to database. Using local storage.',
+                        'warning'
+                    );
+                }
+                
+                return false;
+            }
+        }
+        
+        // Setup network listeners
+        function setupNetworkListeners() {
+            // Online/Offline detection
+            window.addEventListener('online', handleOnline);
+            window.addEventListener('offline', handleOffline);
+            
+            // Firestore connection state listener
+            if (db) {
+                db.enableNetwork().catch(() => {
+                    // Silently fail if network enable fails
+                });
+            }
+        }
+        
+        // Handle online event
+        function handleOnline() {
+            isOnline = true;
+            document.getElementById('offline-indicator').style.display = 'none';
+            document.getElementById('dashboard-offline-indicator').classList.add('hidden');
+            updateConnectionStatus('online');
+            
+            // Try to reconnect to Firestore
+            if (db) {
+                db.enableNetwork().then(() => {
+                    console.log("Firestore network re-enabled");
+                    showNotification('Back Online', 'Connection restored. Syncing data...', 'success');
+                }).catch(error => {
+                    console.warn("Failed to re-enable Firestore network:", error);
+                });
+            }
+        }
+        
+        // Handle offline event
+        function handleOffline() {
+            isOnline = false;
+            document.getElementById('offline-indicator').style.display = 'block';
+            document.getElementById('dashboard-offline-indicator').classList.remove('hidden');
+            updateConnectionStatus('offline');
+            showNotification('Offline Mode', 'You are now offline. Working with local data.', 'info');
+        }
+        
+        // Update connection status in UI
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connection-status');
+            if (statusElement) {
+                const dot = statusElement.querySelector('.w-2');
+                const text = statusElement.querySelector('span:last-child');
+                
+                if (status === 'online') {
+                    dot.className = 'w-2 h-2 rounded-full bg-green-500 mr-2';
+                    text.className = 'text-green-400';
+                    text.textContent = 'Online';
+                } else {
+                    dot.className = 'w-2 h-2 rounded-full bg-yellow-500 mr-2';
+                    text.className = 'text-yellow-400';
+                    text.textContent = 'Offline';
+                }
+            }
+        }
+        
+        // Check Authentication with error handling
+        async function checkAuth() {
+            try {
+                if (auth && typeof auth.onAuthStateChanged === 'function') {
+                    auth.onAuthStateChanged(async (user) => {
+                        try {
+                            if (user) {
+                                console.log("User authenticated:", user.uid, user.email);
+                                currentUser = user;
+                                
+                                // Load user data with error handling
+                                await loadUserData(user.uid);
+                                
+                            } else {
+                                console.log("No user authenticated");
+                                // Redirect to auth page
+                                window.location.href = 'auth.html?action=login&type=developer';
+                            }
+                        } catch (error) {
+                            console.error('Auth state change error:', error);
+                            handleAuthError(error);
+                        }
+                    });
+                    
+                    // Check current user immediately
+                    const currentAuthUser = auth.currentUser;
+                    if (currentAuthUser) {
+                        currentUser = currentAuthUser;
+                        await loadUserData(currentAuthUser.uid);
+                    }
+                    
+                } else {
+                    // Firebase auth not available
+                    console.warn("Firebase Auth not available, entering demo mode");
+                    enterDemoMode();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                handleAuthError(error);
+            }
+        }
+        
+        // Handle authentication errors
+        function handleAuthError(error) {
+            console.error('Authentication error:', error);
+            
+            // Check if it's a network/permission error
+            if (error.code === 'permission-denied' || error.code === 'unavailable') {
+                showError(
+                    'Authentication service unavailable. Using demo mode.',
+                    ERROR_TYPES.AUTH_ERROR
+                );
+                enterDemoMode();
+            } else {
+                // Redirect to login for other errors
+                showError(
+                    'Authentication failed. Redirecting to login...',
+                    ERROR_TYPES.AUTH_ERROR
+                );
+                setTimeout(() => {
+                    window.location.href = 'auth.html?action=login&type=developer';
+                }, 2000);
+            }
+        }
+        
+        // Load User Data with comprehensive error handling
+        async function loadUserData(userId) {
+            try {
+                showLoading('Loading your profile...');
+                
+                if (db && firestoreAvailable) {
+                    console.log("Attempting to load user data from Firestore...");
+                    
+                    // Try to get user data with timeout
+                    const userDoc = await Promise.race([
+                        db.collection('developers').doc(userId).get(),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Firestore timeout')), 5000)
+                        )
+                    ]);
+                    
+                    if (userDoc.exists) {
+                        userData = userDoc.data();
+                        console.log("User data loaded from Firestore:", userData);
+                        
+                        if (userData.onboardingComplete) {
+                            hideOnboarding();
+                            setupDashboard();
+                        } else {
+                            showOnboarding();
+                        }
+                        
+                    } else {
+                        console.log("No user document found, showing onboarding");
+                        showOnboarding();
+                    }
+                    
+                } else {
+                    console.warn("Firestore not available, entering demo mode");
+                    enterDemoMode();
+                }
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                
+                // Handle specific error cases
+                if (error.code === 'permission-denied') {
+                    showFirestoreStatus(
+                        'Permission Denied',
+                        'You don\'t have permission to access the database. Working in demo mode.',
+                        'error'
+                    );
+                    enterDemoMode();
+                    
+                } else if (error.code === 'unavailable' || error.message === 'Firestore timeout') {
+                    showFirestoreStatus(
+                        'Connection Timeout',
+                        'Unable to connect to database. Working offline with local data.',
+                        'warning'
+                    );
+                    enterDemoMode();
+                    
+                } else if (error.code === 'failed-precondition') {
+                    showFirestoreStatus(
+                        'Database Error',
+                        'Database configuration issue. Using demo mode.',
+                        'error'
+                    );
+                    enterDemoMode();
+                    
+                } else {
+                    // Generic error handling
+                    showError(
+                        'Failed to load profile data. Using demo mode.',
+                        ERROR_TYPES.NETWORK_ERROR
+                    );
+                    enterDemoMode();
+                }
+                
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Enter demo mode
+        function enterDemoMode() {
+            isDemoMode = true;
+            
+            // Check localStorage for existing demo data
+            const savedData = localStorage.getItem('codenprofit_demo_user');
+            
+            if (savedData) {
+                try {
+                    userData = JSON.parse(savedData);
+                    console.log("Loaded demo data from localStorage:", userData);
+                    
+                    if (userData.onboardingComplete) {
+                        hideOnboarding();
+                        setupDashboard();
+                    } else {
+                        showOnboarding();
+                    }
+                    
+                } catch (e) {
+                    console.error("Failed to parse saved data:", e);
+                    showOnboarding();
+                }
+            } else {
+                showOnboarding();
+            }
+            
+            // Update UI to show demo mode
+            document.getElementById('offline-indicator').style.display = 'block';
+            document.getElementById('offline-indicator').innerHTML = 
+                '<i class="fas fa-database mr-2"></i> Demo Mode - Data stored locally';
+            
+            if (document.getElementById('dashboard-offline-indicator')) {
+                document.getElementById('dashboard-offline-indicator').classList.remove('hidden');
+                document.getElementById('dashboard-offline-indicator').innerHTML = 
+                    '<i class="fas fa-database mr-2"></i> Demo Mode - Changes saved locally only';
+            }
+        }
+        
+        // Save demo data to localStorage
+        function saveDemoData(data) {
+            try {
+                localStorage.setItem('codenprofit_demo_user', JSON.stringify(data));
+                console.log("Demo data saved to localStorage");
+                return true;
+            } catch (error) {
+                console.error("Failed to save demo data:", error);
+                return false;
+            }
+        }
+        
+        // Show Onboarding
+        function showOnboarding() {
+            document.getElementById('onboarding-overlay').classList.remove('hidden');
+            document.getElementById('dashboard-container').classList.add('hidden');
+        }
+        
+        // Hide Onboarding
+        function hideOnboarding() {
+            document.getElementById('onboarding-overlay').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('hidden');
+        }
+        
+        // Setup Onboarding Event Listeners
+        function setupOnboardingListeners() {
+            // Role selection
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove active class from all cards
+                    document.querySelectorAll('.role-card').forEach(c => {
+                        c.classList.remove('ring-2', 'ring-accent-teal');
+                    });
+                    
+                    // Add active class to clicked card
+                    this.classList.add('ring-2', 'ring-accent-teal');
+                    onboardingData.role = this.dataset.role;
+                });
+            });
+            
+            // Skill selection
+            document.querySelectorAll('.skill-option').forEach(button => {
+                button.addEventListener('click', function() {
+                    const skill = this.dataset.skill;
+                    const selectedSkillsDiv = document.getElementById('selected-skills');
+                    
+                    if (this.classList.contains('bg-accent-teal')) {
+                        // Remove skill
+                        this.classList.remove('bg-accent-teal', 'text-primary-dark');
+                        this.classList.add('glass-dark');
+                        onboardingData.skills = onboardingData.skills.filter(s => s !== skill);
+                        
+                        // Remove from selected skills display
+                        const skillElement = document.querySelector(`#selected-skills [data-skill="${skill}"]`);
+                        if (skillElement) {
+                            skillElement.remove();
+                        }
+                    } else {
+                        // Add skill
+                        this.classList.add('bg-accent-teal', 'text-primary-dark');
+                        this.classList.remove('glass-dark');
+                        onboardingData.skills.push(skill);
+                        
+                        // Add to selected skills display
+                        const skillTag = document.createElement('span');
+                        skillTag.className = 'skill-tag';
+                        skillTag.textContent = skill;
+                        skillTag.dataset.skill = skill;
+                        selectedSkillsDiv.appendChild(skillTag);
+                    }
+                    
+                    // Enable/disable continue button based on minimum skills
+                    const continueBtn = document.getElementById('continue-step3');
+                    continueBtn.disabled = onboardingData.skills.length < 3;
+                });
+            });
+            
+            // Custom skill input
+            document.getElementById('custom-skill-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCustomSkill();
+                }
+            });
+        }
+        
+        // Add Custom Skill
+        function addCustomSkill() {
+            const input = document.getElementById('custom-skill-input');
+            const skill = input.value.trim();
+            
+            if (skill && !onboardingData.skills.includes(skill)) {
+                // Add to skills array
+                onboardingData.skills.push(skill);
+                
+                // Add to selected skills display
+                const selectedSkillsDiv = document.getElementById('selected-skills');
+                const skillTag = document.createElement('span');
+                skillTag.className = 'skill-tag';
+                skillTag.textContent = skill;
+                skillTag.dataset.skill = skill;
+                selectedSkillsDiv.appendChild(skillTag);
+                
+                // Add to skills options
+                const skillsContainer = document.querySelector('.skill-option').parentElement;
+                const skillButton = document.createElement('button');
+                skillButton.className = 'skill-option px-4 py-3 rounded-lg bg-accent-teal text-primary-dark';
+                skillButton.textContent = skill;
+                skillButton.dataset.skill = skill;
+                skillButton.addEventListener('click', function() {
+                    const skill = this.dataset.skill;
+                    const selectedSkillsDiv = document.getElementById('selected-skills');
+                    
+                    if (this.classList.contains('bg-accent-teal')) {
+                        // Remove skill
+                        this.classList.remove('bg-accent-teal', 'text-primary-dark');
+                        this.classList.add('glass-dark');
+                        onboardingData.skills = onboardingData.skills.filter(s => s !== skill);
+                        
+                        // Remove from selected skills display
+                        const skillElement = document.querySelector(`#selected-skills [data-skill="${skill}"]`);
+                        if (skillElement) {
+                            skillElement.remove();
+                        }
+                    } else {
+                        // Add skill
+                        this.classList.add('bg-accent-teal', 'text-primary-dark');
+                        this.classList.remove('glass-dark');
+                        onboardingData.skills.push(skill);
+                        
+                        // Add to selected skills display
+                        const skillTag = document.createElement('span');
+                        skillTag.className = 'skill-tag';
+                        skillTag.textContent = skill;
+                        skillTag.dataset.skill = skill;
+                        selectedSkillsDiv.appendChild(skillTag);
+                    }
+                    
+                    // Enable/disable continue button based on minimum skills
+                    const continueBtn = document.getElementById('continue-step3');
+                    continueBtn.disabled = onboardingData.skills.length < 3;
+                });
+                
+                // Insert before the "Add Custom Skill" section
+                const addSkillSection = document.querySelector('.mt-6');
+                skillsContainer.insertBefore(skillButton, addSkillSection.parentElement);
+                
+                // Clear input
+                input.value = '';
+                
+                // Enable continue button if we have enough skills
+                const continueBtn = document.getElementById('continue-step3');
+                continueBtn.disabled = onboardingData.skills.length < 3;
+            }
+        }
+        
+        // Next Step in Onboarding
+        function nextStep() {
+            // Validate current step
+            if (currentStep === 2 && !onboardingData.role) {
+                showNotification('Error', 'Please select your primary role', 'error');
+                return;
+            }
+            
+            if (currentStep === 3 && onboardingData.skills.length < 3) {
+                showNotification('Error', 'Please select at least 3 skills', 'error');
+                return;
+            }
+            
+            // Hide current step
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            
+            // Update progress dots
+            document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                if (index + 1 <= currentStep) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // Move to next step
+            currentStep++;
+            
+            // Show next step
+            if (currentStep <= 4) {
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                
+                // If moving to step 4, pre-fill data
+                if (currentStep === 4) {
+                    document.getElementById('portfolio-url').value = onboardingData.portfolio || '';
+                    document.getElementById('developer-bio').value = onboardingData.bio || '';
+                    document.getElementById('hourly-rate').value = onboardingData.hourlyRate || '';
+                }
+            }
+        }
+        
+        // Previous Step in Onboarding
+        function prevStep() {
+            // Hide current step
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            
+            // Move to previous step
+            currentStep--;
+            
+            // Show previous step
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            
+            // Update progress dots
+            document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                if (index + 1 <= currentStep) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        // Complete Onboarding
+        async function completeOnboarding() {
+            // Get final data
+            onboardingData.portfolio = document.getElementById('portfolio-url').value;
+            onboardingData.bio = document.getElementById('developer-bio').value;
+            onboardingData.hourlyRate = parseInt(document.getElementById('hourly-rate').value) || 0;
+            
+            // Validate
+            if (!onboardingData.portfolio) {
+                showNotification('Error', 'Please enter your portfolio URL', 'error');
+                return;
+            }
+            
+            if (!onboardingData.bio) {
+                showNotification('Error', 'Please write a brief bio', 'error');
+                return;
+            }
+            
+            if (onboardingData.hourlyRate < 10) {
+                showNotification('Error', 'Hourly rate must be at least $10', 'error');
+                return;
+            }
+            
+            try {
+                showLoading('Setting up your profile...');
+                
+                let userDisplayName = 'Developer';
+                if (currentUser && currentUser.displayName) {
+                    userDisplayName = currentUser.displayName;
+                }
+                
+                const userProfile = {
+                    uid: currentUser ? currentUser.uid : 'demo_' + Date.now(),
+                    email: currentUser ? currentUser.email : 'demo@codenprofit.com',
+                    displayName: userDisplayName,
+                    role: onboardingData.role,
+                    skills: onboardingData.skills,
+                    portfolio: onboardingData.portfolio,
+                    bio: onboardingData.bio,
+                    hourlyRate: onboardingData.hourlyRate,
+                    onboardingComplete: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    totalEarnings: 0,
+                    pendingEarnings: 0,
+                    activeProjects: 0,
+                    avgRating: 0,
+                    strikes: 0,
+                    badges: ['New Member', 'Elite Network'],
+                    userType: 'developer',
+                    isDemo: isDemoMode
+                };
+                
+                // Try to save to Firestore if available
+                if (db && firestoreAvailable && currentUser && !isDemoMode) {
+                    try {
+                        await db.collection('developers').doc(currentUser.uid).set(userProfile);
+                        console.log("Profile saved to Firestore");
+                    } catch (firestoreError) {
+                        console.warn("Failed to save to Firestore:", firestoreError);
+                        // Continue with local save
+                    }
+                }
+                
+                // Always save to localStorage for offline/demo mode
+                saveDemoData(userProfile);
+                
+                // Set user data
+                userData = userProfile;
+                
+                // Show success message
+                showNotification(
+                    'Welcome!', 
+                    isDemoMode ? 
+                    'Profile saved locally. You are in demo mode.' : 
+                    'You are now part of the elite Codenprofit network!', 
+                    'success'
+                );
+                
+                // Hide onboarding and show dashboard
+                setTimeout(() => {
+                    hideOnboarding();
+                    setupDashboard();
+                    hideLoading();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error completing onboarding:', error);
+                hideLoading();
+                showNotification('Error', 'Failed to save profile. Please try again.', 'error');
+            }
+        }
+        
+        // Setup Dashboard
+        function setupDashboard() {
+            try {
+                // Update UI with user data
+                updateUI();
+                
+                // Setup event listeners
+                setupDashboardEventListeners();
+                
+                // Initialize charts
+                initCharts();
+                
+                // Load initial data
+                loadInitialData();
+                
+                // Show success notification
+                showNotification(
+                    'Dashboard Ready',
+                    isDemoMode ? 
+                    'Welcome to Codenprofit Demo Mode!' : 
+                    'Your developer dashboard is ready!',
+                    'success'
+                );
+                
+            } catch (error) {
+                console.error('Error setting up dashboard:', error);
+                showError('Failed to setup dashboard. Please refresh the page.', ERROR_TYPES.NETWORK_ERROR);
+            }
+        }
+        
+        // Setup Dashboard Event Listeners
+        function setupDashboardEventListeners() {
+            // Mobile menu
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    document.querySelector('.sidebar').classList.toggle('active');
+                });
+            }
+            
+            // Profile edit form
+            const profileForm = document.getElementById('profile-edit-form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    saveProfile();
+                });
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth < 768) {
+                    const sidebar = document.querySelector('.sidebar');
+                    const menuBtn = document.getElementById('mobile-menu-btn');
+                    if (sidebar && menuBtn && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+        }
+        
+        // Initialize Charts
+        function initCharts() {
+            try {
+                // Earnings Chart
+                const earningsCtx = document.getElementById('earningsChart')?.getContext('2d');
+                if (earningsCtx) {
+                    new Chart(earningsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                            datasets: [{
+                                label: 'Earnings ($)',
+                                data: userData?.totalEarnings ? 
+                                    [0, 0, 0, 0, 0, 0, userData.totalEarnings] : 
+                                    [0, 0, 0, 0, 0, 0, 0],
+                                borderColor: '#3AAFA9',
+                                backgroundColor: 'rgba(58, 175, 169, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: { color: '#DEF2F1' }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(222, 242, 241, 0.1)' },
+                                    ticks: { color: '#DEF2F1' }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(222, 242, 241, 0.1)' },
+                                    ticks: {
+                                        color: '#DEF2F1',
+                                        callback: function(value) {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+            }
+        }
+        
+        // Load Initial Data
+        function loadInitialData() {
+            loadAvailableProjects();
+            loadMyProjects();
+            loadSkills();
+            loadBadges();
+        }
+        
+        // Load Available Projects
+        function loadAvailableProjects() {
+            try {
+                const projectsList = document.getElementById('available-projects-list');
+                
+                // Sample projects data
+                const projects = [
+                    {
+                        id: 1,
+                        name: 'Luxury Travel Portal',
+                        client: 'Gaanyogi Tours & Travels',
+                        budget: '$3,500',
+                        skills: ['React', 'Node.js', 'MongoDB', 'UI/UX'],
+                        timeline: '3 weeks',
+                        description: 'Premium travel booking platform with real-time availability'
+                    },
+                    {
+                        id: 2,
+                        name: 'AI Stock Prediction Tool',
+                        client: 'BuildNexAI',
+                        budget: '$5,200',
+                        skills: ['Python', 'AI/ML', 'React', 'API Development'],
+                        timeline: '6 weeks',
+                        description: 'Machine learning platform for stock market predictions'
+                    },
+                    {
+                        id: 3,
+                        name: 'Document Conversion SaaS',
+                        client: 'convertdoc.ai',
+                        budget: '$4,800',
+                        skills: ['Node.js', 'AWS', 'React', 'PDF Processing'],
+                        timeline: '4 weeks',
+                        description: 'Cloud-based document conversion service with AI enhancements'
+                    }
+                ];
+                
+                if (projectsList) {
+                    projectsList.innerHTML = projects.map(project => `
+                        <div class="glass-dark rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold">${project.name}</h4>
+                                <span class="text-accent-teal font-bold">${project.budget}</span>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-sm text-soft-ice mb-2">Client: ${project.client}</p>
+                                <p class="text-xs text-soft-ice/80 mb-3">${project.description}</p>
+                                <div class="flex flex-wrap gap-1">
+                                    ${project.skills.map(skill => `<span class="text-xs px-2 py-1 rounded-full bg-surface-teal/40 text-soft-ice">${skill}</span>`).join('')}
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-soft-ice">Timeline: ${project.timeline}</span>
+                                <button onclick="claimProject(${project.id})" class="px-4 py-2 rounded-lg btn-primary text-sm">
+                                    Claim Project
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+            }
+        }
+        
+        // Load My Projects
+        function loadMyProjects() {
+            try {
+                const projectsList = document.getElementById('my-projects-list');
+                
+                // Start with empty projects for new users
+                const projects = userData?.activeProjects || [];
+                
+                if (projectsList) {
+                    if (projects.length === 0) {
+                        projectsList.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-soft-ice">
+                                    <i class="fas fa-project-diagram text-3xl mb-4 text-accent-teal/50"></i>
+                                    <p class="mb-2">No active projects yet</p>
+                                    <p class="text-sm">Browse available projects in the marketplace to get started!</p>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        projectsList.innerHTML = projects.map(project => `
+                            <tr class="border-b border-surface-teal/20 hover:bg-surface-teal/10">
+                                <td class="py-4 px-4">
+                                    <div class="font-medium">${project.name}</div>
+                                </td>
+                                <td class="py-4 px-4">${project.client}</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center">
+                                        <div class="w-24 h-2 rounded-full bg-surface-teal/30 mr-3">
+                                            <div class="h-full rounded-full bg-accent-teal" style="width: ${project.progress}%"></div>
+                                        </div>
+                                        <span class="text-sm">${project.progress}%</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4">${project.deadline}</td>
+                                <td class="py-4 px-4">
+                                    <button onclick="viewProject(${project.id})" class="px-3 py-1 rounded-lg btn-outline text-sm">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading my projects:', error);
+            }
+        }
+        
+        // Load Skills
+        function loadSkills() {
+            try {
+                const skillsList = document.getElementById('skills-list');
+                const editSkillsList = document.getElementById('edit-skills-list');
+                
+                // Get skills from user data or onboarding data
+                const skills = userData?.skills || onboardingData.skills || [];
+                
+                if (skillsList) {
+                    if (skills.length === 0) {
+                        skillsList.innerHTML = '<p class="text-soft-ice/70">No skills added yet</p>';
+                    } else {
+                        skillsList.innerHTML = skills.map(skill => `
+                            <span class="skill-tag">${skill}</span>
+                        `).join('');
+                    }
+                }
+                
+                if (editSkillsList) {
+                    editSkillsList.innerHTML = skills.map(skill => `
+                        <span class="skill-tag relative group">
+                            ${skill}
+                            <button onclick="removeSkill('${skill}')" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-xs hidden group-hover:flex items-center justify-center">
+                                ×
+                            </button>
+                        </span>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading skills:', error);
+            }
+        }
+        
+        // Load Badges
+        function loadBadges() {
+            try {
+                const badgesList = document.getElementById('badges-list');
+                const badgesCount = document.getElementById('badges-count');
+                
+                // Start with basic badges
+                const badges = userData?.badges || ['New Member', 'Elite Network'];
+                
+                // Add role-based badge
+                if (userData?.role) {
+                    let roleBadge = '';
+                    switch(userData.role) {
+                        case 'full-stack': roleBadge = 'Full Stack Developer'; break;
+                        case 'frontend': roleBadge = 'Frontend Specialist'; break;
+                        case 'backend': roleBadge = 'Backend Expert'; break;
+                        case 'ui-ux': roleBadge = 'UI/UX Designer'; break;
+                        case 'devops': roleBadge = 'DevOps Engineer'; break;
+                        case 'ai-ml': roleBadge = 'AI/ML Specialist'; break;
+                    }
+                    if (roleBadge && !badges.includes(roleBadge)) {
+                        badges.push(roleBadge);
+                    }
+                }
+                
+                if (badgesList) {
+                    badgesList.innerHTML = badges.map(badge => `
+                        <span class="badge bg-accent-teal/20 text-accent-teal border-0">${badge}</span>
+                    `).join('');
+                }
+                
+                if (badgesCount) {
+                    badgesCount.textContent = `${badges.length} badge${badges.length !== 1 ? 's' : ''}`;
+                }
+            } catch (error) {
+                console.error('Error loading badges:', error);
+            }
+        }
+        
+        // Update UI with User Data
+        function updateUI() {
+            try {
+                if (userData) {
+                    // Update user info
+                    const displayName = userData.displayName || 'Developer';
+                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'D';
+                    document.getElementById('user-initials').textContent = initials;
+                    document.getElementById('user-name').textContent = displayName;
+                    
+                    // Update role
+                    let roleDisplay = '';
+                    switch(userData.role) {
+                        case 'full-stack': roleDisplay = 'Full Stack Developer'; break;
+                        case 'frontend': roleDisplay = 'Frontend Developer'; break;
+                        case 'backend': roleDisplay = 'Backend Developer'; break;
+                        case 'ui-ux': roleDisplay = 'UI/UX Designer'; break;
+                        case 'devops': roleDisplay = 'DevOps Engineer'; break;
+                        case 'ai-ml': roleDisplay = 'AI/ML Specialist'; break;
+                        default: roleDisplay = userData.role || 'Developer';
+                    }
+                    document.getElementById('user-role').textContent = roleDisplay;
+                    
+                    document.getElementById('user-rating').textContent = userData.avgRating?.toFixed(1) || '0.0';
+                    
+                    // Update stats
+                    document.getElementById('total-earnings').textContent = '$' + (userData.totalEarnings || 0).toLocaleString();
+                    document.getElementById('pending-payments').textContent = '$' + (userData.pendingEarnings || 0).toLocaleString();
+                    document.getElementById('active-projects').textContent = userData.activeProjects || 0;
+                    document.getElementById('avg-rating').textContent = (userData.avgRating || 0).toFixed(1) + '/5.0';
+                    
+                    // Update strike meter
+                    updateStrikeMeter(userData.strikes || 0);
+                }
+            } catch (error) {
+                console.error('Error updating UI:', error);
+            }
+        }
+        
+        // Update Strike Meter
+        function updateStrikeMeter(strikes) {
+            try {
+                const strikeFill = document.getElementById('strike-fill');
+                const strikeStatus = document.getElementById('strike-status');
+                const strikePercentage = document.getElementById('strike-percentage');
+                
+                if (!strikeFill || !strikeStatus || !strikePercentage) return;
+                
+                let width = 100 - (strikes * 20);
+                if (width < 0) width = 0;
+                
+                let status = 'Clean record';
+                let className = 'strike-safe';
+                
+                if (strikes === 1) {
+                    status = '1 strike - Warning';
+                    className = 'strike-warning';
+                } else if (strikes === 2) {
+                    status = '2 strikes - Critical';
+                    className = 'strike-warning';
+                } else if (strikes >= 3) {
+                    status = '3+ strikes - Danger';
+                    className = 'strike-danger';
+                }
+                
+                strikeFill.style.width = width + '%';
+                strikeFill.className = 'strike-fill ' + className;
+                strikeStatus.textContent = status + ' - ' + strikes + ' strike' + (strikes !== 1 ? 's' : '');
+                strikePercentage.textContent = width + '%';
+            } catch (error) {
+                console.error('Error updating strike meter:', error);
+            }
+        }
+        
+        // Claim Project
+        function claimProject(projectId) {
+            try {
+                showNotification('Success', 'Project claimed successfully! Our HR Lead will contact you shortly for next steps.', 'success');
+                
+                // Update active projects count
+                if (userData) {
+                    userData.activeProjects = (userData.activeProjects || 0) + 1;
+                    document.getElementById('active-projects').textContent = userData.activeProjects;
+                    
+                    // Save to localStorage in demo mode
+                    if (isDemoMode) {
+                        saveDemoData(userData);
+                    }
+                    
+                    // Try to save to Firestore if available
+                    if (db && firestoreAvailable && currentUser && !isDemoMode) {
+                        try {
+                            db.collection('developers').doc(currentUser.uid).update({
+                                activeProjects: userData.activeProjects,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        } catch (error) {
+                            console.warn("Failed to update Firestore:", error);
+                        }
+                    }
+                }
+                
+                // Refresh projects list
+                loadMyProjects();
+                
+            } catch (error) {
+                console.error('Error claiming project:', error);
+                showNotification('Error', 'Failed to claim project. Please try again.', 'error');
+            }
+        }
+        
+        // View Project
+        function viewProject(projectId) {
+            showNotification('Info', 'Opening project dashboard...', 'info');
+        }
+        
+        // Edit Skills
+        function editSkills() {
+            try {
+                document.getElementById('profile-edit-modal').classList.remove('hidden');
+                window.scrollTo({ top: document.getElementById('profile-edit-modal').offsetTop - 100, behavior: 'smooth' });
+                
+                // Pre-fill form data
+                if (userData) {
+                    document.getElementById('edit-name').value = userData.displayName || '';
+                    document.getElementById('edit-role').value = userData.role || 'full-stack';
+                    document.getElementById('edit-portfolio').value = userData.portfolio || '';
+                    document.getElementById('edit-bio').value = userData.bio || '';
+                }
+            } catch (error) {
+                console.error('Error opening edit skills:', error);
+            }
+        }
+        
+        function cancelEditProfile() {
+            document.getElementById('profile-edit-modal').classList.add('hidden');
+        }
+        
+        // Add New Skill
+        function addNewSkill() {
+            try {
+                const input = document.getElementById('new-skill-input');
+                const skill = input.value.trim();
+                
+                if (skill) {
+                    const editSkillsList = document.getElementById('edit-skills-list');
+                    const skillTag = document.createElement('span');
+                    skillTag.className = 'skill-tag relative group';
+                    skillTag.innerHTML = `
+                        ${skill}
+                        <button onclick="this.parentElement.remove()" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-xs hidden group-hover:flex items-center justify-center">
+                            ×
+                        </button>
+                    `;
+                    editSkillsList.appendChild(skillTag);
+                    input.value = '';
+                }
+            } catch (error) {
+                console.error('Error adding new skill:', error);
+            }
+        }
+        
+        // Save Profile
+        async function saveProfile() {
+            try {
+                const name = document.getElementById('edit-name').value;
+                const role = document.getElementById('edit-role').value;
+                const portfolio = document.getElementById('edit-portfolio').value;
+                const bio = document.getElementById('edit-bio').value;
+                
+                // Get skills from edit list
+                const skillTags = document.querySelectorAll('#edit-skills-list .skill-tag');
+                const skills = Array.from(skillTags).map(tag => tag.textContent.trim().replace('×', ''));
+                
+                // Update user data
+                userData.displayName = name;
+                userData.role = role;
+                userData.portfolio = portfolio;
+                userData.bio = bio;
+                userData.skills = skills;
+                userData.updatedAt = new Date().toISOString();
+                
+                // Save to localStorage in demo mode
+                if (isDemoMode) {
+                    saveDemoData(userData);
+                }
+                
+                // Try to save to Firestore if available
+                if (db && firestoreAvailable && currentUser && !isDemoMode) {
+                    try {
+                        await db.collection('developers').doc(currentUser.uid).update({
+                            displayName: name,
+                            role: role,
+                            portfolio: portfolio,
+                            bio: bio,
+                            skills: skills,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    } catch (error) {
+                        console.warn("Failed to update Firestore:", error);
+                    }
+                }
+                
+                showNotification('Success', 'Profile updated successfully!', 'success');
+                cancelEditProfile();
+                updateUI();
+                loadSkills();
+                loadBadges();
+                
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showNotification('Error', 'Failed to update profile', 'error');
+            }
+        }
+        
+        // Refresh Marketplace
+        function refreshMarketplace() {
+            try {
+                loadAvailableProjects();
+                showNotification('Info', 'Marketplace refreshed with latest projects', 'info');
+            } catch (error) {
+                console.error('Error refreshing marketplace:', error);
+            }
+        }
+        
+        // Check Connection
+        function checkConnection() {
+            if (isOnline) {
+                showNotification('Connection OK', 'You are connected to the internet.', 'success');
+            } else {
+                showNotification('Offline', 'You are currently offline.', 'info');
+            }
+            
+            // Test Firestore connection
+            if (db) {
+                testFirestoreConnection();
+            }
+        }
+        
+        // Show Firestore Status
+        function showFirestoreStatus(title, message, type = 'warning') {
+            const statusElement = document.getElementById('firestore-status');
+            const titleElement = document.getElementById('firestore-status-title');
+            const messageElement = document.getElementById('firestore-status-message');
+            
+            if (statusElement && titleElement && messageElement) {
+                statusElement.classList.remove('hidden');
+                titleElement.textContent = title;
+                messageElement.textContent = message;
+                
+                // Set color based on type
+                if (type === 'error') {
+                    statusElement.classList.add('bg-red-500/20', 'border-red-500/30');
+                    statusElement.classList.remove('bg-yellow-500/20', 'border-yellow-500/30');
+                } else {
+                    statusElement.classList.add('bg-yellow-500/20', 'border-yellow-500/30');
+                    statusElement.classList.remove('bg-red-500/20', 'border-red-500/30');
+                }
+            }
+        }
+        
+        // Hide Firestore Status
+        function hideFirestoreStatus() {
+            const statusElement = document.getElementById('firestore-status');
+            if (statusElement) {
+                statusElement.classList.add('hidden');
+            }
+        }
+        
+        // Connection Hub Functions
+        function openHRChat() {
+            showNotification('Info', 'Opening HR Lead chat...', 'info');
+        }
+        
+        function openCommunity() {
+            showNotification('Info', 'Joining developer community...', 'info');
+        }
+        
+        function openClientChat() {
+            showNotification('Info', 'Opening client communication hub...', 'info');
+        }
+        
+        // Commercial Tools Functions
+        function requestAPIKeys() {
+            showNotification('Request Sent', 'API key request submitted. HR Lead will contact you shortly.', 'success');
+        }
+        
+        function setupHosting() {
+            showNotification('Info', 'Opening hosting environment setup...', 'info');
+        }
+        
+        function generateInvoice() {
+            showNotification('Info', 'Opening invoice generator...', 'info');
+        }
+        
+        function viewAnalytics() {
+            showNotification('Info', 'Opening earnings analytics dashboard...', 'info');
+        }
+        
+        // Logout
+        function logout() {
+            try {
+                if (auth && typeof auth.signOut === 'function' && !isDemoMode) {
+                    auth.signOut().then(() => {
+                        window.location.href = 'index.html';
+                    }).catch(error => {
+                        console.error('Logout error:', error);
+                        // Still redirect even if logout fails
+                        window.location.href = 'index.html';
+                    });
+                } else {
+                    // Demo mode or auth not available
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Loading Functions
+        function showLoading(message = 'Loading...') {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                const messageElement = overlay.querySelector('p');
+                if (messageElement) {
+                    messageElement.textContent = message;
+                }
+            }
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        // Error Display Functions
+        function showError(message, type = ERROR_TYPES.NETWORK_ERROR) {
+            const errorToast = document.getElementById('error-toast');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (errorToast && errorMessage) {
+                errorMessage.textContent = message;
+                errorToast.style.display = 'block';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    errorToast.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Also show in notification
+            showNotification('Error', message, 'error');
+        }
+        
+        // Notification System
+        function showNotification(title, message, type = 'success') {
+            try {
+                const notification = document.getElementById('notification');
+                const icon = document.getElementById('notification-icon');
+                const notificationTitle = document.getElementById('notification-title');
+                const notificationMessage = document.getElementById('notification-message');
+                
+                if (!notification || !icon || !notificationTitle || !notificationMessage) return;
+                
+                // Set notification type
+                if (type === 'success') {
+                    icon.className = 'w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-4';
+                    icon.innerHTML = '<i class="fas fa-check text-green-500"></i>';
+                } else if (type === 'error') {
+                    icon.className = 'w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-4';
+                    icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+                } else if (type === 'info') {
+                    icon.className = 'w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4';
+                    icon.innerHTML = '<i class="fas fa-info-circle text-blue-500"></i>';
+                } else if (type === 'warning') {
+                    icon.className = 'w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center mr-4';
+                    icon.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-500"></i>';
+                }
+                
+                notificationTitle.textContent = title;
+                notificationMessage.textContent = message;
+                
+                // Show notification
+                notification.classList.remove('translate-x-full');
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error showing notification:', error);
+            }
+        }
+        
+        // Export for debugging
+        window.debug = {
+            getUserData: () => userData,
+            getFirebaseStatus: () => ({ auth, db, firestoreAvailable, isDemoMode, isOnline }),
+            resetDemoData: () => {
+                localStorage.removeItem('codenprofit_demo_user');
+                location.reload();
+            },
+            testFirestore: testFirestoreConnection
+        };
+    </script>
+</body>
+</html>
