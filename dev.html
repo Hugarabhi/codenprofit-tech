@@ -20,6 +20,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
     
     <style>
         :root {
@@ -960,20 +962,7 @@
     </div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVWDmz4Cc9KLvBwf7iLsQiL_9HdjFw4Zk",
-            authDomain: "watchfree-d9e16.firebaseapp.com",
-            projectId: "watchfree-d16",
-            storageBucket: "watchfree-d9e16.firebasestorage.app",
-            messagingSenderId: "4487476314",
-            appId: "1:4487476314:web:6dfa4e14a8660705b15463",
-            measurementId: "G-0GY2JYKLHJ"
-        };
-        
         // Global Variables
-        let auth = null;
-        let db = null;
         let currentUser = null;
         let userData = null;
         let onboardingData = {
@@ -985,8 +974,8 @@
         };
         let currentStep = 1;
         let isOnline = true;
-        let firestoreAvailable = false;
         let isDemoMode = false;
+        let earningsChart = null;
         
         // Error types for better error handling
         const ERROR_TYPES = {
@@ -1003,8 +992,21 @@
                 // Show loading overlay
                 showLoading('Initializing Codenprofit...');
                 
-                // Initialize Firebase
-                await initializeFirebase();
+                // Check if Firebase is available
+                if (typeof FirebaseService === 'undefined') {
+                    console.warn("FirebaseService not found, using demo mode");
+                    isDemoMode = true;
+                    setupDemoMode();
+                } else {
+                    // Initialize Firebase
+                    const firebaseInitialized = FirebaseService.initializeFirebase();
+                    
+                    if (!firebaseInitialized) {
+                        console.warn("Firebase not initialized, using demo mode");
+                        isDemoMode = true;
+                        setupDemoMode();
+                    }
+                }
                 
                 // Check authentication
                 await checkAuth();
@@ -1012,6 +1014,7 @@
                 // Setup event listeners
                 setupOnboardingListeners();
                 setupNetworkListeners();
+                setupDashboardEventListeners();
                 
                 // Hide loading
                 setTimeout(() => {
@@ -1026,83 +1029,63 @@
             }
         });
         
-        // Initialize Firebase with error handling
-        async function initializeFirebase() {
-            try {
-                // Check if Firebase is already initialized
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                
-                auth = firebase.auth();
-                db = firebase.firestore();
-                
-                // Enable offline persistence with error handling
-                try {
-                    await db.enablePersistence({ synchronizeTabs: true });
-                    console.log("Firebase Firestore persistence enabled");
-                } catch (persistenceError) {
-                    console.warn("Firestore persistence failed:", persistenceError);
-                    // Continue without persistence
-                }
-                
-                // Test Firestore connection
-                await testFirestoreConnection();
-                
-                console.log("Firebase initialized successfully");
-                firestoreAvailable = true;
-                
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                firestoreAvailable = false;
-                
-                // Set default auth and db to prevent errors
-                auth = { 
-                    onAuthStateChanged: (callback) => callback(null),
-                    currentUser: null,
-                    signOut: () => Promise.resolve()
+        // Setup Demo Mode
+        function setupDemoMode() {
+            // Create mock Firebase service if not available
+            if (typeof FirebaseService === 'undefined') {
+                window.FirebaseService = {
+                    initializeFirebase: () => false,
+                    getAuth: () => null,
+                    getUserData: async () => ({ success: false, data: null }),
+                    updateUserData: async () => ({ success: false }),
+                    getOpenProjects: async () => ({ success: false, projects: [] }),
+                    updateProject: async () => ({ success: false }),
+                    signOut: async () => {}
                 };
-                db = null;
-                
-                throw error;
             }
+            
+            // Update UI to show demo mode
+            document.getElementById('offline-indicator').style.display = 'block';
+            document.getElementById('offline-indicator').innerHTML = 
+                '<i class="fas fa-database mr-2"></i> Demo Mode - Data stored locally';
+            
+            if (document.getElementById('dashboard-offline-indicator')) {
+                document.getElementById('dashboard-offline-indicator').classList.remove('hidden');
+                document.getElementById('dashboard-offline-indicator').innerHTML = 
+                    '<i class="fas fa-database mr-2"></i> Demo Mode - Changes saved locally only';
+            }
+            
+            showNotification('Demo Mode', 'Running in demo mode. All data is stored locally.', 'info');
         }
         
-        // Test Firestore connection
-        async function testFirestoreConnection() {
-            try {
-                // Try a simple read operation to test connection
-                const testDoc = await db.collection('_test').doc('connection').get({
-                    source: 'server'
-                }).timeout(5000); // 5 second timeout
-                
-                return true;
-            } catch (error) {
-                console.warn("Firestore connection test failed:", error);
-                
-                // Check error type
-                if (error.code === 'permission-denied') {
-                    showFirestoreStatus(
-                        'Permission Denied',
-                        'Firestore permissions not configured. Working in demo mode.',
-                        'warning'
-                    );
-                } else if (error.code === 'unavailable') {
-                    showFirestoreStatus(
-                        'Firestore Unavailable',
-                        'Cannot connect to Firestore backend. Working offline.',
-                        'warning'
-                    );
-                } else {
-                    showFirestoreStatus(
-                        'Connection Issue',
-                        'Unable to connect to database. Using local storage.',
-                        'warning'
-                    );
+        // Enter demo mode
+        function enterDemoMode() {
+            isDemoMode = true;
+            
+            // Check localStorage for existing demo data
+            const savedData = localStorage.getItem('codenprofit_dev_user');
+            
+            if (savedData) {
+                try {
+                    userData = JSON.parse(savedData);
+                    console.log("Loaded demo data from localStorage:", userData);
+                    
+                    if (userData.onboardingComplete) {
+                        hideOnboarding();
+                        setupDashboard();
+                    } else {
+                        showOnboarding();
+                    }
+                    
+                } catch (e) {
+                    console.error("Failed to parse saved data:", e);
+                    showOnboarding();
                 }
-                
-                return false;
+            } else {
+                showOnboarding();
             }
+            
+            setupDemoMode();
         }
         
         // Setup network listeners
@@ -1110,13 +1093,6 @@
             // Online/Offline detection
             window.addEventListener('online', handleOnline);
             window.addEventListener('offline', handleOffline);
-            
-            // Firestore connection state listener
-            if (db) {
-                db.enableNetwork().catch(() => {
-                    // Silently fail if network enable fails
-                });
-            }
         }
         
         // Handle online event
@@ -1126,15 +1102,7 @@
             document.getElementById('dashboard-offline-indicator').classList.add('hidden');
             updateConnectionStatus('online');
             
-            // Try to reconnect to Firestore
-            if (db) {
-                db.enableNetwork().then(() => {
-                    console.log("Firestore network re-enabled");
-                    showNotification('Back Online', 'Connection restored. Syncing data...', 'success');
-                }).catch(error => {
-                    console.warn("Failed to re-enable Firestore network:", error);
-                });
-            }
+            showNotification('Back Online', 'Connection restored. Syncing data...', 'success');
         }
         
         // Handle offline event
@@ -1168,6 +1136,8 @@
         // Check Authentication with error handling
         async function checkAuth() {
             try {
+                const auth = FirebaseService.getAuth();
+                
                 if (auth && typeof auth.onAuthStateChanged === 'function') {
                     auth.onAuthStateChanged(async (user) => {
                         try {
@@ -1175,7 +1145,7 @@
                                 console.log("User authenticated:", user.uid, user.email);
                                 currentUser = user;
                                 
-                                // Load user data with error handling
+                                // Load user data
                                 await loadUserData(user.uid);
                                 
                             } else {
@@ -1235,20 +1205,14 @@
             try {
                 showLoading('Loading your profile...');
                 
-                if (db && firestoreAvailable) {
-                    console.log("Attempting to load user data from Firestore...");
+                if (!isDemoMode) {
+                    console.log("Attempting to load user data from Firebase...");
                     
-                    // Try to get user data with timeout
-                    const userDoc = await Promise.race([
-                        db.collection('developers').doc(userId).get(),
-                        new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('Firestore timeout')), 5000)
-                        )
-                    ]);
+                    const result = await FirebaseService.getUserData(userId, 'developer');
                     
-                    if (userDoc.exists) {
-                        userData = userDoc.data();
-                        console.log("User data loaded from Firestore:", userData);
+                    if (result.success && result.data) {
+                        userData = result.data;
+                        console.log("User data loaded:", userData);
                         
                         if (userData.onboardingComplete) {
                             hideOnboarding();
@@ -1263,8 +1227,25 @@
                     }
                     
                 } else {
-                    console.warn("Firestore not available, entering demo mode");
-                    enterDemoMode();
+                    console.warn("Demo mode, loading from localStorage");
+                    
+                    // Check localStorage for existing data
+                    const savedData = localStorage.getItem('codenprofit_dev_user');
+                    
+                    if (savedData) {
+                        userData = JSON.parse(savedData);
+                        console.log("Loaded user data from localStorage:", userData);
+                        
+                        if (userData.onboardingComplete) {
+                            hideOnboarding();
+                            setupDashboard();
+                        } else {
+                            showOnboarding();
+                        }
+                    } else {
+                        console.log("No saved data found, showing onboarding");
+                        showOnboarding();
+                    }
                 }
                 
             } catch (error) {
@@ -1287,14 +1268,6 @@
                     );
                     enterDemoMode();
                     
-                } else if (error.code === 'failed-precondition') {
-                    showFirestoreStatus(
-                        'Database Error',
-                        'Database configuration issue. Using demo mode.',
-                        'error'
-                    );
-                    enterDemoMode();
-                    
                 } else {
                     // Generic error handling
                     showError(
@@ -1309,49 +1282,10 @@
             }
         }
         
-        // Enter demo mode
-        function enterDemoMode() {
-            isDemoMode = true;
-            
-            // Check localStorage for existing demo data
-            const savedData = localStorage.getItem('codenprofit_demo_user');
-            
-            if (savedData) {
-                try {
-                    userData = JSON.parse(savedData);
-                    console.log("Loaded demo data from localStorage:", userData);
-                    
-                    if (userData.onboardingComplete) {
-                        hideOnboarding();
-                        setupDashboard();
-                    } else {
-                        showOnboarding();
-                    }
-                    
-                } catch (e) {
-                    console.error("Failed to parse saved data:", e);
-                    showOnboarding();
-                }
-            } else {
-                showOnboarding();
-            }
-            
-            // Update UI to show demo mode
-            document.getElementById('offline-indicator').style.display = 'block';
-            document.getElementById('offline-indicator').innerHTML = 
-                '<i class="fas fa-database mr-2"></i> Demo Mode - Data stored locally';
-            
-            if (document.getElementById('dashboard-offline-indicator')) {
-                document.getElementById('dashboard-offline-indicator').classList.remove('hidden');
-                document.getElementById('dashboard-offline-indicator').innerHTML = 
-                    '<i class="fas fa-database mr-2"></i> Demo Mode - Changes saved locally only';
-            }
-        }
-        
         // Save demo data to localStorage
         function saveDemoData(data) {
             try {
-                localStorage.setItem('codenprofit_demo_user', JSON.stringify(data));
+                localStorage.setItem('codenprofit_dev_user', JSON.stringify(data));
                 console.log("Demo data saved to localStorage");
                 return true;
             } catch (error) {
@@ -1593,13 +1527,16 @@
                 showLoading('Setting up your profile...');
                 
                 let userDisplayName = 'Developer';
-                if (currentUser && currentUser.displayName) {
-                    userDisplayName = currentUser.displayName;
+                let userEmail = 'demo@codenprofit.com';
+                
+                if (currentUser) {
+                    userDisplayName = currentUser.displayName || userDisplayName;
+                    userEmail = currentUser.email || userEmail;
                 }
                 
                 const userProfile = {
                     uid: currentUser ? currentUser.uid : 'demo_' + Date.now(),
-                    email: currentUser ? currentUser.email : 'demo@codenprofit.com',
+                    email: userEmail,
                     displayName: userDisplayName,
                     role: onboardingData.role,
                     skills: onboardingData.skills,
@@ -1619,13 +1556,15 @@
                     isDemo: isDemoMode
                 };
                 
-                // Try to save to Firestore if available
-                if (db && firestoreAvailable && currentUser && !isDemoMode) {
+                // Try to save to Firebase if not in demo mode
+                if (!isDemoMode && currentUser) {
                     try {
-                        await db.collection('developers').doc(currentUser.uid).set(userProfile);
-                        console.log("Profile saved to Firestore");
+                        const result = await FirebaseService.updateUserData(currentUser.uid, 'developer', userProfile);
+                        if (result.success) {
+                            console.log("Profile saved to Firebase");
+                        }
                     } catch (firestoreError) {
-                        console.warn("Failed to save to Firestore:", firestoreError);
+                        console.warn("Failed to save to Firebase:", firestoreError);
                         // Continue with local save
                     }
                 }
@@ -1726,7 +1665,11 @@
                 // Earnings Chart
                 const earningsCtx = document.getElementById('earningsChart')?.getContext('2d');
                 if (earningsCtx) {
-                    new Chart(earningsCtx, {
+                    if (earningsChart) {
+                        earningsChart.destroy();
+                    }
+                    
+                    earningsChart = new Chart(earningsCtx, {
                         type: 'line',
                         data: {
                             labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
@@ -1782,76 +1725,134 @@
         }
         
         // Load Available Projects
-        function loadAvailableProjects() {
+        async function loadAvailableProjects() {
             try {
                 const projectsList = document.getElementById('available-projects-list');
                 
-                // Sample projects data
-                const projects = [
-                    {
-                        id: 1,
-                        name: 'Luxury Travel Portal',
-                        client: 'Gaanyogi Tours & Travels',
-                        budget: '$3,500',
-                        skills: ['React', 'Node.js', 'MongoDB', 'UI/UX'],
-                        timeline: '3 weeks',
-                        description: 'Premium travel booking platform with real-time availability'
-                    },
-                    {
-                        id: 2,
-                        name: 'AI Stock Prediction Tool',
-                        client: 'BuildNexAI',
-                        budget: '$5,200',
-                        skills: ['Python', 'AI/ML', 'React', 'API Development'],
-                        timeline: '6 weeks',
-                        description: 'Machine learning platform for stock market predictions'
-                    },
-                    {
-                        id: 3,
-                        name: 'Document Conversion SaaS',
-                        client: 'convertdoc.ai',
-                        budget: '$4,800',
-                        skills: ['Node.js', 'AWS', 'React', 'PDF Processing'],
-                        timeline: '4 weeks',
-                        description: 'Cloud-based document conversion service with AI enhancements'
+                if (!isDemoMode) {
+                    const result = await FirebaseService.getOpenProjects();
+                    
+                    if (result.success && result.projects && result.projects.length > 0) {
+                        renderProjects(projectsList, result.projects);
+                    } else {
+                        renderNoProjects(projectsList);
                     }
-                ];
-                
-                if (projectsList) {
-                    projectsList.innerHTML = projects.map(project => `
-                        <div class="glass-dark rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="font-semibold">${project.name}</h4>
-                                <span class="text-accent-teal font-bold">${project.budget}</span>
-                            </div>
-                            <div class="mb-3">
-                                <p class="text-sm text-soft-ice mb-2">Client: ${project.client}</p>
-                                <p class="text-xs text-soft-ice/80 mb-3">${project.description}</p>
-                                <div class="flex flex-wrap gap-1">
-                                    ${project.skills.map(skill => `<span class="text-xs px-2 py-1 rounded-full bg-surface-teal/40 text-soft-ice">${skill}</span>`).join('')}
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-soft-ice">Timeline: ${project.timeline}</span>
-                                <button onclick="claimProject(${project.id})" class="px-4 py-2 rounded-lg btn-primary text-sm">
-                                    Claim Project
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
+                } else {
+                    // Demo data
+                    const demoProjects = [
+                        {
+                            id: 'demo1',
+                            name: 'Luxury Travel Portal',
+                            client: 'Gaanyogi Tours & Travels',
+                            budget: '$3,500',
+                            skills: ['React', 'Node.js', 'MongoDB', 'UI/UX'],
+                            timeline: '3 weeks',
+                            description: 'Premium travel booking platform with real-time availability',
+                            industry: 'travel'
+                        },
+                        {
+                            id: 'demo2',
+                            name: 'AI Stock Prediction Tool',
+                            client: 'BuildNexAI',
+                            budget: '$5,200',
+                            skills: ['Python', 'AI/ML', 'React', 'API Development'],
+                            timeline: '6 weeks',
+                            description: 'Machine learning platform for stock market predictions',
+                            industry: 'finance'
+                        },
+                        {
+                            id: 'demo3',
+                            name: 'Document Conversion SaaS',
+                            client: 'convertdoc.ai',
+                            budget: '$4,800',
+                            skills: ['Node.js', 'AWS', 'React', 'PDF Processing'],
+                            timeline: '4 weeks',
+                            description: 'Cloud-based document conversion service with AI enhancements',
+                            industry: 'technology'
+                        }
+                    ];
+                    renderProjects(projectsList, demoProjects);
                 }
             } catch (error) {
                 console.error('Error loading projects:', error);
+                renderError(projectsList);
             }
         }
         
+        // Render Projects
+        function renderProjects(container, projects) {
+            if (!container) return;
+            
+            container.innerHTML = projects.map(project => `
+                <div class="glass-dark rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold">${project.name}</h4>
+                        <span class="text-accent-teal font-bold">${project.budget || '$0'}</span>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-sm text-soft-ice mb-2">Client: ${project.client || 'Unknown'}</p>
+                        <p class="text-xs text-soft-ice/80 mb-3">${project.description || 'No description available'}</p>
+                        <div class="flex flex-wrap gap-1">
+                            ${(project.skills || []).map(skill => `<span class="text-xs px-2 py-1 rounded-full bg-surface-teal/40 text-soft-ice">${skill}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-soft-ice">Timeline: ${project.timeline || 'Flexible'}</span>
+                        <button onclick="claimProject('${project.id}')" class="px-4 py-2 rounded-lg btn-primary text-sm">
+                            Claim Project
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render No Projects
+        function renderNoProjects(container) {
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="glass-dark rounded-lg p-8 text-center">
+                    <i class="fas fa-project-diagram text-4xl text-accent-teal/50 mb-4"></i>
+                    <p class="text-lg font-medium mb-2">No projects available</p>
+                    <p class="text-soft-ice/70">Check back later for new opportunities</p>
+                </div>
+            `;
+        }
+        
+        // Render Error
+        function renderError(container) {
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="glass-dark rounded-lg p-8 text-center">
+                    <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                    <p class="text-lg font-medium mb-2">Failed to load projects</p>
+                    <p class="text-soft-ice/70">Please check your connection and try again</p>
+                    <button onclick="loadAvailableProjects()" class="mt-4 px-4 py-2 rounded-lg btn-outline text-sm">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+        
         // Load My Projects
-        function loadMyProjects() {
+        async function loadMyProjects() {
             try {
                 const projectsList = document.getElementById('my-projects-list');
                 
-                // Start with empty projects for new users
-                const projects = userData?.activeProjects || [];
+                // In real implementation, you would fetch projects assigned to this developer
+                // For now, we'll use demo data
+                const projects = userData?.activeProjects ? 
+                    [
+                        {
+                            id: 1,
+                            name: 'E-commerce Platform',
+                            client: 'StyleHub',
+                            progress: 65,
+                            deadline: '2024-03-15',
+                            status: 'in-progress'
+                        }
+                    ] : [];
                 
                 if (projectsList) {
                     if (projects.length === 0) {
@@ -1881,7 +1882,7 @@
                                 </td>
                                 <td class="py-4 px-4">${project.deadline}</td>
                                 <td class="py-4 px-4">
-                                    <button onclick="viewProject(${project.id})" class="px-3 py-1 rounded-lg btn-outline text-sm">
+                                    <button onclick="viewProject('${project.id}')" class="px-3 py-1 rounded-lg btn-outline text-sm">
                                         View
                                     </button>
                                 </td>
@@ -1917,7 +1918,7 @@
                     editSkillsList.innerHTML = skills.map(skill => `
                         <span class="skill-tag relative group">
                             ${skill}
-                            <button onclick="removeSkill('${skill}')" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-xs hidden group-hover:flex items-center justify-center">
+                            <button onclick="this.parentElement.remove()" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-xs hidden group-hover:flex items-center justify-center">
                                 ×
                             </button>
                         </span>
@@ -2042,35 +2043,40 @@
         }
         
         // Claim Project
-        function claimProject(projectId) {
+        async function claimProject(projectId) {
             try {
-                showNotification('Success', 'Project claimed successfully! Our HR Lead will contact you shortly for next steps.', 'success');
-                
-                // Update active projects count
-                if (userData) {
+                if (!isDemoMode && currentUser) {
+                    // Update project status
+                    const result = await FirebaseService.updateProject(projectId, {
+                        status: 'assigned',
+                        developerId: currentUser.uid,
+                        developerName: userData.displayName,
+                        assignedAt: new Date().toISOString()
+                    });
+                    
+                    if (result.success) {
+                        // Update developer's active projects
+                        const newActiveProjects = (userData.activeProjects || 0) + 1;
+                        await FirebaseService.updateUserData(currentUser.uid, 'developer', {
+                            activeProjects: newActiveProjects
+                        });
+                        
+                        userData.activeProjects = newActiveProjects;
+                    } else {
+                        throw new Error('Failed to update project');
+                    }
+                } else {
+                    // Demo mode update
                     userData.activeProjects = (userData.activeProjects || 0) + 1;
-                    document.getElementById('active-projects').textContent = userData.activeProjects;
-                    
-                    // Save to localStorage in demo mode
-                    if (isDemoMode) {
-                        saveDemoData(userData);
-                    }
-                    
-                    // Try to save to Firestore if available
-                    if (db && firestoreAvailable && currentUser && !isDemoMode) {
-                        try {
-                            db.collection('developers').doc(currentUser.uid).update({
-                                activeProjects: userData.activeProjects,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                        } catch (error) {
-                            console.warn("Failed to update Firestore:", error);
-                        }
-                    }
+                    saveDemoData(userData);
                 }
                 
-                // Refresh projects list
+                showNotification('Success', 'Project claimed successfully! Our HR Lead will contact you shortly for next steps.', 'success');
+                
+                // Update UI
+                document.getElementById('active-projects').textContent = userData.activeProjects;
                 loadMyProjects();
+                loadAvailableProjects();
                 
             } catch (error) {
                 console.error('Error claiming project:', error);
@@ -2081,6 +2087,7 @@
         // View Project
         function viewProject(projectId) {
             showNotification('Info', 'Opening project dashboard...', 'info');
+            // In a real implementation, you would navigate to project details page
         }
         
         // Edit Skills
@@ -2142,33 +2149,25 @@
                 const skills = Array.from(skillTags).map(tag => tag.textContent.trim().replace('×', ''));
                 
                 // Update user data
-                userData.displayName = name;
-                userData.role = role;
-                userData.portfolio = portfolio;
-                userData.bio = bio;
-                userData.skills = skills;
-                userData.updatedAt = new Date().toISOString();
+                const updates = {
+                    displayName: name,
+                    role: role,
+                    portfolio: portfolio,
+                    bio: bio,
+                    skills: skills,
+                    updatedAt: new Date().toISOString()
+                };
                 
-                // Save to localStorage in demo mode
-                if (isDemoMode) {
-                    saveDemoData(userData);
-                }
-                
-                // Try to save to Firestore if available
-                if (db && firestoreAvailable && currentUser && !isDemoMode) {
-                    try {
-                        await db.collection('developers').doc(currentUser.uid).update({
-                            displayName: name,
-                            role: role,
-                            portfolio: portfolio,
-                            bio: bio,
-                            skills: skills,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    } catch (error) {
-                        console.warn("Failed to update Firestore:", error);
+                if (!isDemoMode && currentUser) {
+                    const result = await FirebaseService.updateUserData(currentUser.uid, 'developer', updates);
+                    if (!result.success) {
+                        throw new Error('Failed to update profile in Firebase');
                     }
                 }
+                
+                // Update local data
+                userData = { ...userData, ...updates };
+                saveDemoData(userData);
                 
                 showNotification('Success', 'Profile updated successfully!', 'success');
                 cancelEditProfile();
@@ -2198,11 +2197,6 @@
                 showNotification('Connection OK', 'You are connected to the internet.', 'success');
             } else {
                 showNotification('Offline', 'You are currently offline.', 'info');
-            }
-            
-            // Test Firestore connection
-            if (db) {
-                testFirestoreConnection();
             }
         }
         
@@ -2267,20 +2261,14 @@
         }
         
         // Logout
-        function logout() {
+        async function logout() {
             try {
-                if (auth && typeof auth.signOut === 'function' && !isDemoMode) {
-                    auth.signOut().then(() => {
-                        window.location.href = 'index.html';
-                    }).catch(error => {
-                        console.error('Logout error:', error);
-                        // Still redirect even if logout fails
-                        window.location.href = 'index.html';
-                    });
-                } else {
-                    // Demo mode or auth not available
-                    window.location.href = 'index.html';
+                if (!isDemoMode) {
+                    await FirebaseService.signOut();
                 }
+                // Clear localStorage
+                localStorage.removeItem('codenprofit_dev_user');
+                window.location.href = 'index.html';
             } catch (error) {
                 console.error('Logout error:', error);
                 window.location.href = 'index.html';
@@ -2369,12 +2357,12 @@
         // Export for debugging
         window.debug = {
             getUserData: () => userData,
-            getFirebaseStatus: () => ({ auth, db, firestoreAvailable, isDemoMode, isOnline }),
+            getFirebaseStatus: () => ({ isDemoMode, isOnline }),
             resetDemoData: () => {
-                localStorage.removeItem('codenprofit_demo_user');
+                localStorage.removeItem('codenprofit_dev_user');
                 location.reload();
             },
-            testFirestore: testFirestoreConnection
+            testConnection: checkConnection
         };
     </script>
 </body>
