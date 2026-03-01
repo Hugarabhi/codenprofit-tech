@@ -32,77 +32,109 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--primary-dark);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #1a3a3a 100%);
             color: var(--pure-white);
             min-height: 100vh;
         }
         
         .glass-effect {
-            background: rgba(43, 122, 120, 0.6);
+            background: rgba(43, 122, 120, 0.25);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(58, 175, 169, 0.2);
+            border: 1px solid rgba(58, 175, 169, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
         
         .gradient-accent {
-            background: linear-gradient(90deg, rgba(58, 175, 169, 0.9) 0%, rgba(222, 242, 241, 0.7) 100%);
+            background: linear-gradient(135deg, var(--accent-teal) 0%, var(--surface-teal) 100%);
         }
         
         .text-accent-teal { color: var(--accent-teal); }
         .text-soft-ice { color: var(--soft-ice); }
+        .bg-primary-dark { background-color: var(--primary-dark); }
         
         .form-input {
-            background: rgba(43, 122, 120, 0.3);
-            border: 1px solid rgba(43, 122, 120, 0.5);
+            background: rgba(43, 122, 120, 0.2);
+            border: 1px solid rgba(58, 175, 169, 0.3);
             color: var(--pure-white);
             transition: all 0.3s ease;
+        }
+        
+        .form-input:hover {
+            border-color: rgba(58, 175, 169, 0.6);
         }
         
         .form-input:focus {
             outline: none;
             border-color: var(--accent-teal);
             box-shadow: 0 0 0 3px rgba(58, 175, 169, 0.2);
+            background: rgba(43, 122, 120, 0.3);
+        }
+        
+        .form-input::placeholder {
+            color: rgba(222, 242, 241, 0.5);
+            font-size: 0.9rem;
         }
         
         .btn-primary {
-            background-color: var(--accent-teal);
+            background: linear-gradient(135deg, var(--accent-teal) 0%, var(--surface-teal) 100%);
             color: var(--primary-dark);
+            font-weight: 600;
             transition: all 0.3s ease;
+            border: none;
         }
         
-        .btn-primary:hover {
-            background-color: #2B7A78;
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(58, 175, 169, 0.3);
+            box-shadow: 0 10px 25px rgba(58, 175, 169, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .btn-outline {
             border: 2px solid var(--accent-teal);
             color: var(--accent-teal);
+            background: transparent;
+            font-weight: 600;
             transition: all 0.3s ease;
         }
         
         .btn-outline:hover {
-            background-color: rgba(58, 175, 169, 0.1);
+            background: rgba(58, 175, 169, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .account-type-btn {
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         .account-type-btn.active {
-            background-color: var(--accent-teal);
+            background: linear-gradient(135deg, var(--accent-teal) 0%, var(--surface-teal) 100%);
             color: var(--primary-dark);
+            border: none;
         }
         
         .account-type-btn:not(.active) {
-            background-color: rgba(43, 122, 120, 0.3);
+            background: rgba(43, 122, 120, 0.2);
             color: var(--soft-ice);
-            border: 1px solid rgba(43, 122, 120, 0.5);
+            border: 1px solid rgba(58, 175, 169, 0.3);
+        }
+        
+        .account-type-btn:hover:not(.active) {
+            background: rgba(43, 122, 120, 0.4);
         }
         
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 24px;
+            right: 24px;
             z-index: 1000;
             transform: translateX(400px);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 380px;
         }
         
         .notification.show {
@@ -115,26 +147,75 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(23, 37, 42, 0.9);
+            background: rgba(23, 37, 42, 0.95);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             flex-direction: column;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
         
         .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(58, 175, 169, 0.3);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(58, 175, 169, 0.2);
             border-radius: 50%;
             border-top-color: var(--accent-teal);
             animation: spin 1s ease-in-out infinite;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .loading-spinner.small {
+            width: 30px;
+            height: 30px;
+            border-width: 3px;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Password strength indicator */
+        .password-strength {
+            height: 4px;
+            background: rgba(222, 242, 241, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .strength-weak { background: #ef4444; }
+        .strength-medium { background: #f59e0b; }
+        .strength-strong { background: #10b981; }
+        
+        /* Terms checkbox styling */
+        .terms-checkbox {
+            accent-color: var(--accent-teal);
+            width: 16px;
+            height: 16px;
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -142,19 +223,22 @@
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
         <div class="loading-spinner"></div>
-        <p class="text-soft-ice">Processing...</p>
+        <p class="text-accent-teal text-lg font-semibold pulse" id="loading-message">Processing...</p>
     </div>
     
     <!-- Notification -->
-    <div id="notification" class="notification glass-effect rounded-lg p-4 shadow-lg max-w-sm">
-        <div class="flex items-center">
-            <div id="notification-icon" class="w-10 h-10 rounded-full flex items-center justify-center mr-4">
+    <div id="notification" class="notification glass-effect rounded-xl p-4 shadow-2xl">
+        <div class="flex items-start">
+            <div id="notification-icon" class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center mr-4">
                 <i class="fas fa-check"></i>
             </div>
-            <div>
-                <p class="font-medium" id="notification-title">Success!</p>
-                <p class="text-sm text-soft-ice" id="notification-message"></p>
+            <div class="flex-grow">
+                <p class="font-bold text-lg mb-1" id="notification-title">Success!</p>
+                <p class="text-sm text-soft-ice opacity-90" id="notification-message"></p>
             </div>
+            <button onclick="hideNotification()" class="text-soft-ice hover:text-accent-teal ml-2 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     </div>
     
@@ -162,72 +246,86 @@
         <!-- Logo -->
         <div class="text-center mb-10">
             <div class="flex items-center justify-center space-x-2 mb-4">
-                <div class="w-12 h-12 rounded-full gradient-accent flex items-center justify-center">
-                    <span class="font-bold text-primary-dark text-xl">C</span>
+                <div class="w-14 h-14 rounded-full gradient-accent flex items-center justify-center shadow-lg">
+                    <span class="font-bold text-primary-dark text-2xl">C</span>
                 </div>
-                <span class="text-3xl font-bold text-accent-teal tracking-wider">CODENPROFIT</span>
+                <span class="text-3xl font-bold text-accent-teal tracking-wider drop-shadow-lg">CODENPROFIT</span>
             </div>
-            <p class="text-soft-ice">Turn Code Into Commercial Capital</p>
+            <p class="text-soft-ice text-lg opacity-90">Turn Code Into Commercial Capital</p>
         </div>
         
         <!-- Auth Container -->
-        <div class="glass-effect rounded-2xl p-8">
+        <div class="glass-effect rounded-2xl p-8 shadow-2xl">
             <!-- Login Container -->
             <div id="login-container">
-                <h2 class="text-2xl font-bold mb-6 text-center">Welcome Back</h2>
+                <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-accent-teal to-soft-ice bg-clip-text text-transparent">Welcome Back</h2>
                 
                 <form id="login-form" class="space-y-6">
                     <div>
-                        <label for="login-email" class="block text-soft-ice mb-2">Email Address</label>
-                        <input type="email" id="login-email" required 
-                               class="w-full px-4 py-3 rounded-lg form-input"
-                               placeholder="you@example.com">
+                        <label for="login-email" class="block text-soft-ice mb-2 text-sm font-medium">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="login-email" 
+                            name="email"
+                            required 
+                            autocomplete="email"
+                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            placeholder="name@company.com"
+                        >
                     </div>
                     
                     <div>
-                        <label for="login-password" class="block text-soft-ice mb-2">Password</label>
-                        <input type="password" id="login-password" required 
-                               class="w-full px-4 py-3 rounded-lg form-input"
-                               placeholder="••••••••">
+                        <label for="login-password" class="block text-soft-ice mb-2 text-sm font-medium">Password</label>
+                        <input 
+                            type="password" 
+                            id="login-password" 
+                            name="password"
+                            required 
+                            autocomplete="current-password"
+                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            placeholder="••••••••"
+                        >
                     </div>
                     
                     <div class="flex items-center justify-between">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="remember-me" class="mr-2">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="remember-me" class="terms-checkbox">
                             <span class="text-sm text-soft-ice">Remember me</span>
                         </label>
-                        <button type="button" onclick="showForgotPassword()" class="text-sm text-accent-teal hover:underline">
+                        <button type="button" onclick="showForgotPassword()" class="text-sm text-accent-teal hover:underline font-medium transition-all">
                             Forgot password?
                         </button>
                     </div>
                     
-                    <button type="submit" class="w-full py-3 rounded-lg btn-primary font-semibold">
+                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold text-base tracking-wide">
                         Sign In
                     </button>
                     
-                    <div class="relative my-6">
+                    <div class="relative my-8">
                         <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-surface-teal/50"></div>
+                            <div class="w-full border-t border-surface-teal/30"></div>
                         </div>
                         <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-transparent text-soft-ice">Or continue with</span>
+                            <span class="px-4 bg-transparent text-soft-ice bg-opacity-90">Or continue with</span>
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4">
                         <button type="button" onclick="loginWithGoogle()" 
-                                class="py-3 rounded-lg bg-surface-teal/30 border border-surface-teal/50 text-soft-ice hover:bg-surface-teal/40 transition-colors flex items-center justify-center">
-                            <i class="fab fa-google mr-2"></i> Google
+                                class="py-3 rounded-lg bg-surface-teal/20 border border-surface-teal/40 text-soft-ice hover:bg-surface-teal/30 transition-all flex items-center justify-center space-x-2">
+                            <i class="fab fa-google text-accent-teal"></i>
+                            <span>Google</span>
                         </button>
                         <button type="button" onclick="loginWithGitHub()" 
-                                class="py-3 rounded-lg bg-surface-teal/30 border border-surface-teal/50 text-soft-ice hover:bg-surface-teal/40 transition-colors flex items-center justify-center">
-                            <i class="fab fa-github mr-2"></i> GitHub
+                                class="py-3 rounded-lg bg-surface-teal/20 border border-surface-teal/40 text-soft-ice hover:bg-surface-teal/30 transition-all flex items-center justify-center space-x-2">
+                            <i class="fab fa-github text-accent-teal"></i>
+                            <span>GitHub</span>
                         </button>
                     </div>
                     
-                    <p class="text-center text-soft-ice mt-6">
+                    <p class="text-center text-soft-ice mt-8">
                         Don't have an account? 
-                        <button type="button" onclick="showSignup()" class="text-accent-teal hover:underline ml-1 font-semibold">
+                        <button type="button" onclick="showSignup()" class="text-accent-teal hover:underline ml-1 font-semibold transition-all">
                             Sign up
                         </button>
                     </p>
@@ -236,69 +334,99 @@
             
             <!-- Signup Container -->
             <div id="signup-container" class="hidden">
-                <h2 class="text-2xl font-bold mb-6 text-center">Join the Movement</h2>
+                <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-accent-teal to-soft-ice bg-clip-text text-transparent">Join the Movement</h2>
                 
                 <form id="signup-form" class="space-y-6">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="signup-firstname" class="block text-soft-ice mb-2">First Name</label>
-                            <input type="text" id="signup-firstname" required 
-                                   class="w-full px-4 py-3 rounded-lg form-input"
-                                   placeholder="John">
+                            <label for="signup-firstname" class="block text-soft-ice mb-2 text-sm font-medium">First Name</label>
+                            <input 
+                                type="text" 
+                                id="signup-firstname" 
+                                name="firstName"
+                                required 
+                                autocomplete="given-name"
+                                class="w-full px-4 py-3 rounded-lg form-input text-base"
+                                placeholder="John"
+                            >
                         </div>
                         <div>
-                            <label for="signup-lastname" class="block text-soft-ice mb-2">Last Name</label>
-                            <input type="text" id="signup-lastname" required 
-                                   class="w-full px-4 py-3 rounded-lg form-input"
-                                   placeholder="Doe">
+                            <label for="signup-lastname" class="block text-soft-ice mb-2 text-sm font-medium">Last Name</label>
+                            <input 
+                                type="text" 
+                                id="signup-lastname" 
+                                name="lastName"
+                                required 
+                                autocomplete="family-name"
+                                class="w-full px-4 py-3 rounded-lg form-input text-base"
+                                placeholder="Doe"
+                            >
                         </div>
                     </div>
                     
                     <div>
-                        <label for="signup-email" class="block text-soft-ice mb-2">Email Address</label>
-                        <input type="email" id="signup-email" required 
-                               class="w-full px-4 py-3 rounded-lg form-input"
-                               placeholder="you@example.com">
+                        <label for="signup-email" class="block text-soft-ice mb-2 text-sm font-medium">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="signup-email" 
+                            name="email"
+                            required 
+                            autocomplete="email"
+                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            placeholder="name@company.com"
+                        >
                     </div>
                     
                     <div>
-                        <label for="signup-password" class="block text-soft-ice mb-2">Password</label>
-                        <input type="password" id="signup-password" required 
-                               class="w-full px-4 py-3 rounded-lg form-input"
-                               placeholder="••••••••">
-                        <p class="text-xs text-soft-ice mt-2">Minimum 8 characters with letters and numbers</p>
+                        <label for="signup-password" class="block text-soft-ice mb-2 text-sm font-medium">Password</label>
+                        <input 
+                            type="password" 
+                            id="signup-password" 
+                            name="new-password"
+                            required 
+                            autocomplete="new-password"
+                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            placeholder="Create a password"
+                            onkeyup="checkPasswordStrength(this.value)"
+                        >
+                        <div class="password-strength">
+                            <div id="password-strength-bar" class="password-strength-bar"></div>
+                        </div>
+                        <p class="text-xs text-soft-ice mt-2 opacity-80">
+                            <i class="fas fa-info-circle mr-1"></i> Minimum 8 characters with letters and numbers
+                        </p>
                     </div>
                     
                     <div>
-                        <p class="text-soft-ice mb-3">I am a:</p>
+                        <p class="text-soft-ice mb-3 text-sm font-medium">I am a:</p>
                         <div class="grid grid-cols-2 gap-4">
                             <button type="button" id="host-btn" 
-                                    class="py-3 rounded-lg account-type-btn active"
+                                    class="py-3 rounded-lg account-type-btn active text-sm font-medium"
                                     onclick="selectAccountType('host')">
-                                Business Host/Client
+                                Business Host
                             </button>
                             <button type="button" id="dev-btn" 
-                                    class="py-3 rounded-lg account-type-btn"
+                                    class="py-3 rounded-lg account-type-btn text-sm font-medium"
                                     onclick="selectAccountType('developer')">
                                 Developer
                             </button>
                         </div>
                     </div>
                     
-                    <div class="flex items-start">
-                        <input type="checkbox" id="terms" required class="mt-1 mr-2">
-                        <label for="terms" class="text-sm text-soft-ice">
-                            I agree to the <a href="#" onclick="showTerms()" class="text-accent-teal hover:underline">Terms of Service</a> and <a href="#" onclick="showPrivacy()" class="text-accent-teal hover:underline">Privacy Policy</a>
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" id="terms" required class="terms-checkbox mt-1">
+                        <label for="terms" class="text-sm text-soft-ice leading-relaxed">
+                            I agree to the <a href="#" onclick="showTerms()" class="text-accent-teal hover:underline font-medium">Terms of Service</a> and <a href="#" onclick="showPrivacy()" class="text-accent-teal hover:underline font-medium">Privacy Policy</a>
                         </label>
                     </div>
                     
-                    <button type="submit" class="w-full py-3 rounded-lg btn-primary font-semibold">
+                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold text-base tracking-wide">
                         Create Account
                     </button>
                     
-                    <p class="text-center text-soft-ice mt-6">
+                    <p class="text-center text-soft-ice mt-8">
                         Already have an account? 
-                        <button type="button" onclick="showLogin()" class="text-accent-teal hover:underline ml-1 font-semibold">
+                        <button type="button" onclick="showLogin()" class="text-accent-teal hover:underline ml-1 font-semibold transition-all">
                             Sign in
                         </button>
                     </p>
@@ -307,23 +435,31 @@
             
             <!-- Forgot Password Container -->
             <div id="forgot-password-container" class="hidden">
-                <h2 class="text-2xl font-bold mb-6 text-center">Reset Password</h2>
+                <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-accent-teal to-soft-ice bg-clip-text text-transparent">Reset Password</h2>
                 
                 <form id="forgot-password-form" class="space-y-6">
                     <div>
-                        <label for="reset-email" class="block text-soft-ice mb-2">Email Address</label>
-                        <input type="email" id="reset-email" required 
-                               class="w-full px-4 py-3 rounded-lg form-input"
-                               placeholder="you@example.com">
-                        <p class="text-sm text-soft-ice mt-2">We'll send you a link to reset your password</p>
+                        <label for="reset-email" class="block text-soft-ice mb-2 text-sm font-medium">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="reset-email" 
+                            name="email"
+                            required 
+                            autocomplete="email"
+                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            placeholder="name@company.com"
+                        >
+                        <p class="text-sm text-soft-ice mt-3 opacity-80">
+                            <i class="fas fa-envelope mr-1"></i> We'll send you a link to reset your password
+                        </p>
                     </div>
                     
-                    <button type="submit" class="w-full py-3 rounded-lg btn-primary font-semibold">
+                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold text-base tracking-wide">
                         Send Reset Link
                     </button>
                     
                     <button type="button" onclick="showLogin()" 
-                            class="w-full py-3 rounded-lg btn-outline font-semibold">
+                            class="w-full py-3.5 rounded-lg btn-outline font-semibold text-base">
                         Back to Login
                     </button>
                 </form>
@@ -331,9 +467,10 @@
         </div>
         
         <!-- Back to home -->
-        <div class="text-center mt-6">
-            <a href="index.html" class="text-soft-ice hover:text-accent-teal transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Home
+        <div class="text-center mt-8">
+            <a href="index.html" class="text-soft-ice hover:text-accent-teal transition-all inline-flex items-center space-x-2">
+                <i class="fas fa-arrow-left text-sm"></i>
+                <span>Back to Home</span>
             </a>
         </div>
     </div>
@@ -349,12 +486,13 @@
         const signupContainer = document.getElementById('signup-container');
         const forgotPasswordContainer = document.getElementById('forgot-password-container');
         const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingMessage = document.getElementById('loading-message');
         
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // Check Firebase initialization
-                if (!window.firebaseInitialized) {
+                if (typeof FirebaseService === 'undefined' || !window.firebaseInitialized) {
                     console.warn('Firebase not initialized, using demo mode');
                     isDemoMode = true;
                 }
@@ -379,6 +517,9 @@
                 
                 // Setup form handlers
                 setupFormHandlers();
+                
+                // Load remembered email
+                loadRememberedEmail();
                 
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -414,6 +555,8 @@
         // Redirect to Dashboard
         async function redirectToDashboard(user) {
             try {
+                showLoading('Checking session...');
+                
                 if (!isDemoMode && FirebaseService && FirebaseService.getDb()) {
                     const db = FirebaseService.getDb();
                     
@@ -421,17 +564,26 @@
                     const devDoc = await db.collection('developers').doc(user.uid).get();
                     const hostDoc = await db.collection('hosts').doc(user.uid).get();
                     
+                    hideLoading();
+                    
                     if (devDoc.exists) {
                         window.location.href = 'dev.html';
                     } else if (hostDoc.exists) {
                         window.location.href = 'host.html';
-                    } else {
-                        // New user, stay on auth page
-                        console.log('New user, complete profile');
                     }
                 }
             } catch (error) {
+                hideLoading();
                 console.error('Redirect error:', error);
+            }
+        }
+        
+        // Load Remembered Email
+        function loadRememberedEmail() {
+            const remembered = localStorage.getItem('remembered_email');
+            if (remembered) {
+                document.getElementById('login-email').value = remembered;
+                document.getElementById('remember-me').checked = true;
             }
         }
         
@@ -455,7 +607,7 @@
         }
         
         function showTerms() {
-            showNotification('Terms of Service', 'Terms would be displayed here', 'info');
+            showNotification('Terms of Service', 'Terms and conditions would be displayed here', 'info');
         }
         
         function showPrivacy() {
@@ -478,6 +630,37 @@
             }
         }
         
+        // Password Strength Checker
+        function checkPasswordStrength(password) {
+            const bar = document.getElementById('password-strength-bar');
+            let strength = 0;
+            let strengthText = '';
+            
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            
+            let width = (strength / 4) * 100;
+            bar.style.width = width + '%';
+            
+            if (width < 25) {
+                bar.className = 'password-strength-bar strength-weak';
+                strengthText = 'Weak';
+            } else if (width < 50) {
+                bar.className = 'password-strength-bar strength-weak';
+                strengthText = 'Weak';
+            } else if (width < 75) {
+                bar.className = 'password-strength-bar strength-medium';
+                strengthText = 'Medium';
+            } else {
+                bar.className = 'password-strength-bar strength-strong';
+                strengthText = 'Strong';
+            }
+            
+            return strengthText;
+        }
+        
         // Handle Login
         async function handleLogin(e) {
             e.preventDefault();
@@ -491,7 +674,14 @@
                 return;
             }
             
-            showLoading();
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification('Error', 'Please enter a valid email address', 'error');
+                return;
+            }
+            
+            showLoading('Signing in...');
             
             if (isDemoMode) {
                 // Demo mode login
@@ -501,17 +691,27 @@
                     
                     // Store demo user
                     const demoUser = {
+                        uid: 'demo_' + Date.now(),
                         email: email,
                         displayName: email.split('@')[0],
-                        userType: selectedAccountType
+                        firstName: email.split('@')[0],
+                        lastName: 'User',
+                        userType: selectedAccountType,
+                        onboardingComplete: false
                     };
                     localStorage.setItem('demo_user', JSON.stringify(demoUser));
+                    
+                    if (rememberMe) {
+                        localStorage.setItem('remembered_email', email);
+                    } else {
+                        localStorage.removeItem('remembered_email');
+                    }
                     
                     // Redirect
                     setTimeout(() => {
                         window.location.href = selectedAccountType === 'host' ? 'host.html' : 'dev.html';
                     }, 1000);
-                }, 1000);
+                }, 1500);
                 return;
             }
             
@@ -519,18 +719,20 @@
                 const result = await FirebaseService.signIn(email, password);
                 
                 if (result.success) {
-                    showNotification('Success', 'Login successful!', 'success');
+                    showNotification('Success', 'Login successful! Redirecting...', 'success');
                     
                     if (rememberMe) {
                         localStorage.setItem('remembered_email', email);
+                    } else {
+                        localStorage.removeItem('remembered_email');
                     }
                     
                     setTimeout(() => {
                         redirectToDashboard(result.user);
-                    }, 1000);
+                    }, 1500);
                 } else {
                     hideLoading();
-                    showNotification('Error', result.error, 'error');
+                    showNotification('Error', result.error || 'Invalid email or password', 'error');
                 }
             } catch (error) {
                 hideLoading();
@@ -548,6 +750,7 @@
             const password = document.getElementById('signup-password').value;
             const terms = document.getElementById('terms').checked;
             
+            // Validation
             if (!firstName || !lastName || !email || !password) {
                 showNotification('Error', 'Please fill all fields', 'error');
                 return;
@@ -558,12 +761,25 @@
                 return;
             }
             
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification('Error', 'Please enter a valid email address', 'error');
+                return;
+            }
+            
+            // Password validation
             if (password.length < 8) {
                 showNotification('Error', 'Password must be at least 8 characters', 'error');
                 return;
             }
             
-            showLoading();
+            if (!password.match(/[A-Za-z]/) || !password.match(/[0-9]/)) {
+                showNotification('Error', 'Password must contain both letters and numbers', 'error');
+                return;
+            }
+            
+            showLoading('Creating your account...');
             
             if (isDemoMode) {
                 // Demo mode signup
@@ -585,13 +801,9 @@
                     
                     // Redirect to appropriate page
                     setTimeout(() => {
-                        if (selectedAccountType === 'developer') {
-                            window.location.href = 'dev.html';
-                        } else {
-                            window.location.href = 'host.html';
-                        }
-                    }, 1000);
-                }, 1500);
+                        window.location.href = selectedAccountType === 'developer' ? 'dev.html' : 'host.html';
+                    }, 1500);
+                }, 2000);
                 return;
             }
             
@@ -609,7 +821,7 @@
                 const result = await FirebaseService.signUp(email, password, userData);
                 
                 if (result.success) {
-                    showNotification('Success', 'Account created successfully!', 'success');
+                    showNotification('Success', 'Account created successfully! Redirecting...', 'success');
                     
                     setTimeout(() => {
                         if (selectedAccountType === 'developer') {
@@ -620,7 +832,15 @@
                     }, 1500);
                 } else {
                     hideLoading();
-                    showNotification('Error', result.error, 'error');
+                    
+                    // Handle specific Firebase errors
+                    if (result.error.includes('email-already-in-use')) {
+                        showNotification('Error', 'This email is already registered. Please sign in.', 'error');
+                    } else if (result.error.includes('weak-password')) {
+                        showNotification('Error', 'Password is too weak. Please use a stronger password.', 'error');
+                    } else {
+                        showNotification('Error', result.error || 'Signup failed. Please try again.', 'error');
+                    }
                 }
             } catch (error) {
                 hideLoading();
@@ -639,13 +859,23 @@
                 return;
             }
             
-            showLoading();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification('Error', 'Please enter a valid email address', 'error');
+                return;
+            }
+            
+            showLoading('Sending reset link...');
             
             if (isDemoMode) {
                 setTimeout(() => {
                     hideLoading();
                     showNotification('Success', 'Password reset email sent! (Demo Mode)', 'success');
-                }, 1000);
+                    
+                    setTimeout(() => {
+                        showLogin();
+                    }, 2000);
+                }, 1500);
                 return;
             }
             
@@ -661,34 +891,39 @@
                 }, 2000);
             } catch (error) {
                 hideLoading();
-                showNotification('Error', error.message, 'error');
+                
+                if (error.code === 'auth/user-not-found') {
+                    showNotification('Error', 'No account found with this email address.', 'error');
+                } else {
+                    showNotification('Error', error.message || 'Failed to send reset email.', 'error');
+                }
             }
         }
         
         // Social Login (Demo)
         function loginWithGoogle() {
-            if (isDemoMode) {
-                showNotification('Info', 'Google login would connect to Firebase Auth', 'info');
-            } else {
-                showNotification('Info', 'Google login not configured', 'info');
-            }
+            showNotification('Info', 'Google login would connect to Firebase Auth', 'info');
         }
         
         function loginWithGitHub() {
-            if (isDemoMode) {
-                showNotification('Info', 'GitHub login would connect to Firebase Auth', 'info');
-            } else {
-                showNotification('Info', 'GitHub login not configured', 'info');
-            }
+            showNotification('Info', 'GitHub login would connect to Firebase Auth', 'info');
         }
         
         // Loading Functions
-        function showLoading() {
+        function showLoading(message = 'Processing...') {
+            if (loadingMessage) {
+                loadingMessage.textContent = message;
+            }
             loadingOverlay.classList.remove('hidden');
         }
         
         function hideLoading() {
             loadingOverlay.classList.add('hidden');
+        }
+        
+        // Hide Notification
+        function hideNotification() {
+            document.getElementById('notification').classList.remove('show');
         }
         
         // Notification System
@@ -698,50 +933,52 @@
             const notificationTitle = document.getElementById('notification-title');
             const notificationMessage = document.getElementById('notification-message');
             
-            // Set icon based on type
-            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center mr-4';
-            let iconHtml = '';
+            // Reset classes
+            icon.className = 'w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center mr-4';
             
+            // Set icon based on type
             switch(type) {
                 case 'success':
                     icon.className += ' bg-green-500/20';
-                    iconHtml = '<i class="fas fa-check text-green-500"></i>';
+                    icon.innerHTML = '<i class="fas fa-check text-green-500 text-xl"></i>';
                     break;
                 case 'error':
                     icon.className += ' bg-red-500/20';
-                    iconHtml = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+                    icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
                     break;
                 case 'info':
                     icon.className += ' bg-blue-500/20';
-                    iconHtml = '<i class="fas fa-info-circle text-blue-500"></i>';
+                    icon.innerHTML = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
                     break;
                 case 'warning':
                     icon.className += ' bg-yellow-500/20';
-                    iconHtml = '<i class="fas fa-exclamation-triangle text-yellow-500"></i>';
+                    icon.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>';
                     break;
             }
             
-            icon.innerHTML = iconHtml;
             notificationTitle.textContent = title;
             notificationMessage.textContent = message;
             
             // Show notification
             notification.classList.add('show');
             
-            // Auto-hide after 3 seconds
+            // Auto-hide after 4 seconds
             setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+                hideNotification();
+            }, 4000);
         }
         
-        // Check for remembered email
-        (function() {
-            const remembered = localStorage.getItem('remembered_email');
-            if (remembered) {
-                document.getElementById('login-email').value = remembered;
-                document.getElementById('remember-me').checked = true;
-            }
-        })();
+        // Make functions globally available
+        window.showLogin = showLogin;
+        window.showSignup = showSignup;
+        window.showForgotPassword = showForgotPassword;
+        window.selectAccountType = selectAccountType;
+        window.loginWithGoogle = loginWithGoogle;
+        window.loginWithGitHub = loginWithGitHub;
+        window.showTerms = showTerms;
+        window.showPrivacy = showPrivacy;
+        window.hideNotification = hideNotification;
+        window.checkPasswordStrength = checkPasswordStrength;
     </script>
 </body>
 </html>
