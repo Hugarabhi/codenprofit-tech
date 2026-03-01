@@ -95,9 +95,69 @@
             color: var(--soft-ice);
             border: 1px solid rgba(43, 122, 120, 0.5);
         }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(23, 37, 42, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(58, 175, 169, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-teal);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p class="text-soft-ice">Processing...</p>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification glass-effect rounded-lg p-4 shadow-lg max-w-sm">
+        <div class="flex items-center">
+            <div id="notification-icon" class="w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-check"></i>
+            </div>
+            <div>
+                <p class="font-medium" id="notification-title">Success!</p>
+                <p class="text-sm text-soft-ice" id="notification-message"></p>
+            </div>
+        </div>
+    </div>
+    
     <div class="w-full max-w-md">
         <!-- Logo -->
         <div class="text-center mb-10">
@@ -112,7 +172,8 @@
         
         <!-- Auth Container -->
         <div class="glass-effect rounded-2xl p-8">
-            <div id="login-container" class="hidden">
+            <!-- Login Container -->
+            <div id="login-container">
                 <h2 class="text-2xl font-bold mb-6 text-center">Welcome Back</h2>
                 
                 <form id="login-form" class="space-y-6">
@@ -132,7 +193,7 @@
                     
                     <div class="flex items-center justify-between">
                         <label class="flex items-center">
-                            <input type="checkbox" class="mr-2">
+                            <input type="checkbox" id="remember-me" class="mr-2">
                             <span class="text-sm text-soft-ice">Remember me</span>
                         </label>
                         <button type="button" onclick="showForgotPassword()" class="text-sm text-accent-teal hover:underline">
@@ -173,6 +234,7 @@
                 </form>
             </div>
             
+            <!-- Signup Container -->
             <div id="signup-container" class="hidden">
                 <h2 class="text-2xl font-bold mb-6 text-center">Join the Movement</h2>
                 
@@ -226,7 +288,7 @@
                     <div class="flex items-start">
                         <input type="checkbox" id="terms" required class="mt-1 mr-2">
                         <label for="terms" class="text-sm text-soft-ice">
-                            I agree to the <a href="terms.html" class="text-accent-teal hover:underline">Terms of Service</a> and <a href="privacy.html" class="text-accent-teal hover:underline">Privacy Policy</a>
+                            I agree to the <a href="#" onclick="showTerms()" class="text-accent-teal hover:underline">Terms of Service</a> and <a href="#" onclick="showPrivacy()" class="text-accent-teal hover:underline">Privacy Policy</a>
                         </label>
                     </div>
                     
@@ -243,6 +305,7 @@
                 </form>
             </div>
             
+            <!-- Forgot Password Container -->
             <div id="forgot-password-container" class="hidden">
                 <h2 class="text-2xl font-bold mb-6 text-center">Reset Password</h2>
                 
@@ -275,110 +338,100 @@
         </div>
     </div>
 
-    <!-- Notification -->
-    <div id="notification" class="fixed top-6 right-6 glass-effect rounded-lg p-4 shadow-lg z-50 transform translate-x-full transition-transform duration-300 max-w-sm">
-        <div class="flex items-center">
-            <div id="notification-icon" class="w-10 h-10 rounded-full flex items-center justify-center mr-4">
-                <i class="fas fa-check"></i>
-            </div>
-            <div>
-                <p class="font-medium" id="notification-title">Success!</p>
-                <p class="text-sm text-soft-ice" id="notification-message"></p>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Global Variables
         let selectedAccountType = 'host';
+        let currentUser = null;
         let isDemoMode = false;
         
         // DOM Elements
         const loginContainer = document.getElementById('login-container');
         const signupContainer = document.getElementById('signup-container');
         const forgotPasswordContainer = document.getElementById('forgot-password-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
         
-        // Initialize Page
+        // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
-            // Initialize Firebase
-            const firebaseInitialized = initializeFirebase();
-            
-            if (!firebaseInitialized) {
-                console.warn("Firebase not initialized, using demo mode");
+            try {
+                // Check Firebase initialization
+                if (!window.firebaseInitialized) {
+                    console.warn('Firebase not initialized, using demo mode');
+                    isDemoMode = true;
+                }
+                
+                // Check URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const action = urlParams.get('action');
+                const type = urlParams.get('type');
+                
+                if (type) {
+                    selectAccountType(type);
+                }
+                
+                if (action === 'signup') {
+                    showSignup();
+                } else {
+                    showLogin();
+                }
+                
+                // Check if user is already logged in
+                await checkAuthState();
+                
+                // Setup form handlers
+                setupFormHandlers();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showNotification('Error', 'Failed to initialize. Using demo mode.', 'error');
                 isDemoMode = true;
-                FirebaseService.setupDemoMode();
             }
-            
-            // Check URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const action = urlParams.get('action');
-            const type = urlParams.get('type');
-            
-            if (type) {
-                selectAccountType(type);
-            }
-            
-            if (action === 'signup') {
-                showSignup();
-            } else {
-                showLogin();
-            }
-            
-            // Setup form handlers
-            setupFormHandlers();
-            
-            // Check if user is already logged in
-            checkAuthState();
         });
         
+        // Setup Form Handlers
         function setupFormHandlers() {
-            // Login form
-            document.getElementById('login-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleLogin();
-            });
-            
-            // Signup form
-            document.getElementById('signup-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleSignup();
-            });
-            
-            // Forgot password form
-            document.getElementById('forgot-password-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleForgotPassword();
-            });
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('signup-form').addEventListener('submit', handleSignup);
+            document.getElementById('forgot-password-form').addEventListener('submit', handleForgotPassword);
         }
         
-        // Check authentication state
-        function checkAuthState() {
-            if (auth) {
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        // User is already logged in, redirect to appropriate dashboard
-                        getUserTypeAndRedirect(user.uid);
-                    }
-                });
+        // Check Authentication State
+        async function checkAuthState() {
+            try {
+                if (!isDemoMode && FirebaseService && FirebaseService.getAuth()) {
+                    const auth = FirebaseService.getAuth();
+                    auth.onAuthStateChanged((user) => {
+                        if (user) {
+                            // User is logged in, redirect to appropriate dashboard
+                            redirectToDashboard(user);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
             }
         }
         
-        // Get user type and redirect
-        async function getUserTypeAndRedirect(uid) {
+        // Redirect to Dashboard
+        async function redirectToDashboard(user) {
             try {
-                // Try to get user data from both collections
-                const [devDoc, hostDoc] = await Promise.all([
-                    db?.collection('developers').doc(uid).get(),
-                    db?.collection('hosts').doc(uid).get()
-                ]);
-                
-                if (devDoc?.exists) {
-                    window.location.href = 'dev.html';
-                } else if (hostDoc?.exists) {
-                    window.location.href = 'host.html';
+                if (!isDemoMode && FirebaseService && FirebaseService.getDb()) {
+                    const db = FirebaseService.getDb();
+                    
+                    // Check user type
+                    const devDoc = await db.collection('developers').doc(user.uid).get();
+                    const hostDoc = await db.collection('hosts').doc(user.uid).get();
+                    
+                    if (devDoc.exists) {
+                        window.location.href = 'dev.html';
+                    } else if (hostDoc.exists) {
+                        window.location.href = 'host.html';
+                    } else {
+                        // New user, stay on auth page
+                        console.log('New user, complete profile');
+                    }
                 }
             } catch (error) {
-                console.error('Error getting user type:', error);
+                console.error('Redirect error:', error);
             }
         }
         
@@ -401,6 +454,14 @@
             forgotPasswordContainer.classList.remove('hidden');
         }
         
+        function showTerms() {
+            showNotification('Terms of Service', 'Terms would be displayed here', 'info');
+        }
+        
+        function showPrivacy() {
+            showNotification('Privacy Policy', 'Privacy policy would be displayed here', 'info');
+        }
+        
         // Account Type Selection
         function selectAccountType(type) {
             selectedAccountType = type;
@@ -417,46 +478,73 @@
             }
         }
         
-        // Authentication Handlers
-        async function handleLogin() {
-            const email = document.getElementById('login-email').value;
+        // Handle Login
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
             
             if (!email || !password) {
                 showNotification('Error', 'Please fill all fields', 'error');
                 return;
             }
             
-            showNotification('Info', 'Signing in...', 'info');
+            showLoading();
             
             if (isDemoMode) {
                 // Demo mode login
                 setTimeout(() => {
-                    if (selectedAccountType === 'host') {
-                        window.location.href = 'host.html';
-                    } else {
-                        window.location.href = 'dev.html';
-                    }
+                    hideLoading();
+                    showNotification('Success', 'Demo login successful!', 'success');
+                    
+                    // Store demo user
+                    const demoUser = {
+                        email: email,
+                        displayName: email.split('@')[0],
+                        userType: selectedAccountType
+                    };
+                    localStorage.setItem('demo_user', JSON.stringify(demoUser));
+                    
+                    // Redirect
+                    setTimeout(() => {
+                        window.location.href = selectedAccountType === 'host' ? 'host.html' : 'dev.html';
+                    }, 1000);
                 }, 1000);
                 return;
             }
             
-            const result = await FirebaseService.signIn(email, password);
-            
-            if (result.success) {
-                showNotification('Success', 'Login successful!', 'success');
-                setTimeout(() => {
-                    getUserTypeAndRedirect(result.user.uid);
-                }, 1500);
-            } else {
-                showNotification('Error', result.error, 'error');
+            try {
+                const result = await FirebaseService.signIn(email, password);
+                
+                if (result.success) {
+                    showNotification('Success', 'Login successful!', 'success');
+                    
+                    if (rememberMe) {
+                        localStorage.setItem('remembered_email', email);
+                    }
+                    
+                    setTimeout(() => {
+                        redirectToDashboard(result.user);
+                    }, 1000);
+                } else {
+                    hideLoading();
+                    showNotification('Error', result.error, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification('Error', 'Login failed. Please try again.', 'error');
             }
         }
         
-        async function handleSignup() {
-            const firstName = document.getElementById('signup-firstname').value;
-            const lastName = document.getElementById('signup-lastname').value;
-            const email = document.getElementById('signup-email').value;
+        // Handle Signup
+        async function handleSignup(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('signup-firstname').value.trim();
+            const lastName = document.getElementById('signup-lastname').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
             const password = document.getElementById('signup-password').value;
             const terms = document.getElementById('terms').checked;
             
@@ -475,104 +563,185 @@
                 return;
             }
             
-            showNotification('Info', 'Creating account...', 'info');
+            showLoading();
             
             if (isDemoMode) {
                 // Demo mode signup
                 setTimeout(() => {
-                    showNotification('Success', 'Account created successfully!', 'success');
+                    hideLoading();
+                    showNotification('Success', 'Account created successfully! (Demo Mode)', 'success');
+                    
+                    // Store demo user
+                    const demoUser = {
+                        uid: 'demo_' + Date.now(),
+                        email: email,
+                        displayName: `${firstName} ${lastName}`,
+                        firstName: firstName,
+                        lastName: lastName,
+                        userType: selectedAccountType,
+                        onboardingComplete: false
+                    };
+                    localStorage.setItem('demo_user', JSON.stringify(demoUser));
+                    
+                    // Redirect to appropriate page
                     setTimeout(() => {
-                        if (selectedAccountType === 'host') {
-                            window.location.href = 'host.html';
-                        } else {
+                        if (selectedAccountType === 'developer') {
                             window.location.href = 'dev.html';
+                        } else {
+                            window.location.href = 'host.html';
                         }
-                    }, 1500);
-                }, 1000);
+                    }, 1000);
+                }, 1500);
                 return;
             }
             
-            const userData = {
-                email: email,
-                displayName: `${firstName} ${lastName}`,
-                firstName: firstName,
-                lastName: lastName,
-                userType: selectedAccountType
-            };
-            
-            const result = await FirebaseService.signUp(email, password, userData);
-            
-            if (result.success) {
-                showNotification('Success', 'Account created successfully!', 'success');
-                setTimeout(() => {
-                    window.location.href = selectedAccountType === 'host' ? 'host.html' : 'dev.html';
-                }, 1500);
-            } else {
-                showNotification('Error', result.error, 'error');
+            try {
+                const userData = {
+                    email: email,
+                    displayName: `${firstName} ${lastName}`,
+                    firstName: firstName,
+                    lastName: lastName,
+                    userType: selectedAccountType,
+                    onboardingComplete: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                const result = await FirebaseService.signUp(email, password, userData);
+                
+                if (result.success) {
+                    showNotification('Success', 'Account created successfully!', 'success');
+                    
+                    setTimeout(() => {
+                        if (selectedAccountType === 'developer') {
+                            window.location.href = 'dev.html';
+                        } else {
+                            window.location.href = 'host.html';
+                        }
+                    }, 1500);
+                } else {
+                    hideLoading();
+                    showNotification('Error', result.error, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification('Error', 'Signup failed. Please try again.', 'error');
             }
         }
         
-        async function handleForgotPassword() {
-            const email = document.getElementById('reset-email').value;
+        // Handle Forgot Password
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('reset-email').value.trim();
             
             if (!email) {
                 showNotification('Error', 'Please enter your email address', 'error');
                 return;
             }
             
+            showLoading();
+            
             if (isDemoMode) {
-                showNotification('Info', 'In production, a reset email would be sent', 'info');
+                setTimeout(() => {
+                    hideLoading();
+                    showNotification('Success', 'Password reset email sent! (Demo Mode)', 'success');
+                }, 1000);
                 return;
             }
             
-            const result = await FirebaseService.resetPassword(email);
-            
-            if (result.success) {
+            try {
+                const auth = FirebaseService.getAuth();
+                await auth.sendPasswordResetEmail(email);
+                
+                hideLoading();
                 showNotification('Success', 'Password reset email sent! Check your inbox.', 'success');
-            } else {
-                showNotification('Error', result.error, 'error');
+                
+                setTimeout(() => {
+                    showLogin();
+                }, 2000);
+            } catch (error) {
+                hideLoading();
+                showNotification('Error', error.message, 'error');
             }
         }
         
-        // Social Login
+        // Social Login (Demo)
         function loginWithGoogle() {
-            showNotification('Info', 'Google login would be implemented with Firebase', 'info');
+            if (isDemoMode) {
+                showNotification('Info', 'Google login would connect to Firebase Auth', 'info');
+            } else {
+                showNotification('Info', 'Google login not configured', 'info');
+            }
         }
         
         function loginWithGitHub() {
-            showNotification('Info', 'GitHub login would be implemented with Firebase', 'info');
+            if (isDemoMode) {
+                showNotification('Info', 'GitHub login would connect to Firebase Auth', 'info');
+            } else {
+                showNotification('Info', 'GitHub login not configured', 'info');
+            }
+        }
+        
+        // Loading Functions
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
         }
         
         // Notification System
         function showNotification(title, message, type = 'success') {
+            const notification = document.getElementById('notification');
             const icon = document.getElementById('notification-icon');
             const notificationTitle = document.getElementById('notification-title');
             const notificationMessage = document.getElementById('notification-message');
-            const notification = document.getElementById('notification');
             
-            // Set notification type
-            if (type === 'success') {
-                icon.className = 'w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mr-4';
-                icon.innerHTML = '<i class="fas fa-check text-green-500"></i>';
-            } else if (type === 'error') {
-                icon.className = 'w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-4';
-                icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
-            } else if (type === 'info') {
-                icon.className = 'w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4';
-                icon.innerHTML = '<i class="fas fa-info-circle text-blue-500"></i>';
+            // Set icon based on type
+            icon.className = 'w-10 h-10 rounded-full flex items-center justify-center mr-4';
+            let iconHtml = '';
+            
+            switch(type) {
+                case 'success':
+                    icon.className += ' bg-green-500/20';
+                    iconHtml = '<i class="fas fa-check text-green-500"></i>';
+                    break;
+                case 'error':
+                    icon.className += ' bg-red-500/20';
+                    iconHtml = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+                    break;
+                case 'info':
+                    icon.className += ' bg-blue-500/20';
+                    iconHtml = '<i class="fas fa-info-circle text-blue-500"></i>';
+                    break;
+                case 'warning':
+                    icon.className += ' bg-yellow-500/20';
+                    iconHtml = '<i class="fas fa-exclamation-triangle text-yellow-500"></i>';
+                    break;
             }
             
+            icon.innerHTML = iconHtml;
             notificationTitle.textContent = title;
             notificationMessage.textContent = message;
             
             // Show notification
-            notification.classList.remove('translate-x-full');
+            notification.classList.add('show');
             
-            // Hide after 3 seconds
+            // Auto-hide after 3 seconds
             setTimeout(() => {
-                notification.classList.add('translate-x-full');
+                notification.classList.remove('show');
             }, 3000);
         }
+        
+        // Check for remembered email
+        (function() {
+            const remembered = localStorage.getItem('remembered_email');
+            if (remembered) {
+                document.getElementById('login-email').value = remembered;
+                document.getElementById('remember-me').checked = true;
+            }
+        })();
     </script>
 </body>
 </html>
