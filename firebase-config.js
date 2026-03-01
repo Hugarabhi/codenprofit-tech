@@ -2,7 +2,7 @@
 const firebaseConfig = {
     apiKey: "AIzaSyCVWDmz4Cc9KLvBwf7iLsQiL_9HdjFw4Zk",
     authDomain: "watchfree-d9e16.firebaseapp.com",
-    projectId: "watchfree-d9e16",
+    projectId: "watchfree-d16",
     storageBucket: "watchfree-d9e16.firebasestorage.app",
     messagingSenderId: "4487476314",
     appId: "1:4487476314:web:6dfa4e14a8660705b15463",
@@ -10,58 +10,69 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let auth = null;
-let db = null;
-let storage = null;
+let app, auth, db, storage;
+let isFirebaseInitialized = false;
 
-function initializeFirebase() {
-    try {
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        auth = firebase.auth();
-        db = firebase.firestore();
-        storage = firebase.storage();
-        
-        // Enable offline persistence
-        db.enablePersistence({ synchronizeTabs: true })
-            .catch((err) => {
-                console.warn("Firestore persistence failed:", err.code);
-            });
-            
-        console.log("Firebase initialized successfully");
-        return true;
-    } catch (error) {
-        console.error("Firebase initialization failed:", error);
-        return false;
+try {
+    if (!firebase.apps.length) {
+        app = firebase.initializeApp(firebaseConfig);
+    } else {
+        app = firebase.apps[0];
     }
+    
+    auth = firebase.auth();
+    db = firebase.firestore();
+    storage = firebase.storage();
+    
+    // Enable offline persistence
+    db.enablePersistence({ synchronizeTabs: true })
+        .catch(err => console.warn('Firestore persistence error:', err));
+    
+    isFirebaseInitialized = true;
+    console.log('Firebase initialized successfully');
+} catch (error) {
+    console.error('Firebase initialization error:', error);
+    isFirebaseInitialized = false;
 }
 
-// Common Firebase Functions
+// Firebase Service
 const FirebaseService = {
-    // Auth Functions
-    async signUp(email, password, userData) {
+    // Initialize
+    initializeFirebase: () => isFirebaseInitialized,
+    
+    // Getters
+    getAuth: () => auth,
+    getDb: () => db,
+    getStorage: () => storage,
+    
+    // Auth Methods
+    signUp: async (email, password, userData) => {
         try {
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
             
-            // Update display name
-            await user.updateProfile({
-                displayName: userData.displayName
+            await user.updateProfile({ displayName: userData.displayName });
+            
+            // Save user data to Firestore
+            await db.collection(userData.userType + 's').doc(user.uid).set({
+                ...userData,
+                uid: user.uid,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             });
             
-            // Create user document
-            await this.createUserDocument(user.uid, userData);
-            
-            return { success: true, user: user };
+            return { success: true, user };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    async signIn(email, password) {
+    signIn: async (email, password) => {
         try {
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
             return { success: true, user: userCredential.user };
         } catch (error) {
@@ -69,253 +80,145 @@ const FirebaseService = {
         }
     },
     
-    async signOut() {
+    signOut: async () => {
         try {
-            await auth.signOut();
+            if (auth) await auth.signOut();
             return { success: true };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    async resetPassword(email) {
+    // User Data Methods
+    getUserData: async (userId, userType) => {
         try {
-            await auth.sendPasswordResetEmail(email);
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-    
-    // Firestore Functions
-    async createUserDocument(uid, userData) {
-        try {
-            const collection = userData.userType === 'developer' ? 'developers' : 'hosts';
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
             
-            const userDoc = {
-                uid: uid,
-                email: userData.email,
-                displayName: userData.displayName,
-                userType: userData.userType,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                onboardingComplete: false,
-                isDemo: false
-            };
-            
-            // Add type-specific data
-            if (userData.userType === 'developer') {
-                Object.assign(userDoc, {
-                    role: '',
-                    skills: [],
-                    portfolio: '',
-                    bio: '',
-                    hourlyRate: 0,
-                    totalEarnings: 0,
-                    pendingEarnings: 0,
-                    activeProjects: 0,
-                    completedProjects: 0,
-                    avgRating: 0,
-                    badges: ['New Member'],
-                    rating: 0,
-                    earnings: 0,
-                    projectsCompleted: 0,
-                    strikes: 0
-                });
-            } else {
-                Object.assign(userDoc, {
-                    companyName: userData.companyName || '',
-                    industry: userData.industry || '',
-                    subscription: 'basic',
-                    projects: [],
-                    brandAssets: {}
-                });
-            }
-            
-            await db.collection(collection).doc(uid).set(userDoc);
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-    
-    async getUserData(uid, userType) {
-        try {
-            const collection = userType === 'developer' ? 'developers' : 'hosts';
-            const doc = await db.collection(collection).doc(uid).get();
-            
+            const doc = await db.collection(userType + 's').doc(userId).get();
             if (doc.exists) {
                 return { success: true, data: doc.data() };
-            } else {
-                return { success: false, error: 'User not found' };
             }
+            return { success: false, error: 'User not found' };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    async updateUserData(uid, userType, data) {
+    updateUserData: async (userId, userType, data) => {
         try {
-            const collection = userType === 'developer' ? 'developers' : 'hosts';
-            await db.collection(collection).doc(uid).update({
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
+            await db.collection(userType + 's').doc(userId).set({
                 ...data,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+            
             return { success: true };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    // Project Functions
-    async createProject(projectData) {
+    // Projects Methods
+    createProject: async (projectData) => {
         try {
-            const docRef = await db.collection('projects').add({
-                ...projectData,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
+            projectData.createdAt = new Date().toISOString();
+            projectData.updatedAt = new Date().toISOString();
+            
+            const docRef = await db.collection('projects').add(projectData);
             return { success: true, id: docRef.id };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    async getProjectsByHost(hostId) {
+    getProjectsByHost: async (hostId) => {
         try {
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
             const snapshot = await db.collection('projects')
                 .where('hostId', '==', hostId)
                 .orderBy('createdAt', 'desc')
                 .get();
             
             const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            return { success: true, projects: projects };
+            return { success: true, projects };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    async getOpenProjects() {
+    getAvailableProjects: async () => {
         try {
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
             const snapshot = await db.collection('projects')
                 .where('status', '==', 'open')
                 .orderBy('createdAt', 'desc')
-                .limit(20)
+                .limit(10)
                 .get();
             
             const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            return { success: true, projects: projects };
+            return { success: true, projects };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    async updateProject(projectId, data) {
+    updateProject: async (projectId, data) => {
         try {
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
             await db.collection('projects').doc(projectId).update({
                 ...data,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                updatedAt: new Date().toISOString()
             });
+            
             return { success: true };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    // Developer Functions
-    async getAvailableDevelopers() {
+    // Developers Methods
+    getDevelopers: async (filter = 'all') => {
         try {
-            const snapshot = await db.collection('developers')
-                .where('onboardingComplete', '==', true)
-                .limit(20)
-                .get();
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
             
+            let query = db.collection('developers').where('onboardingComplete', '==', true);
+            
+            if (filter !== 'all') {
+                query = query.where('skills', 'array-contains', filter);
+            }
+            
+            const snapshot = await query.limit(20).get();
             const developers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            return { success: true, developers: developers };
+            
+            return { success: true, developers };
         } catch (error) {
             return { success: false, error: error.message };
         }
     },
     
-    // Storage Functions
-    async uploadBrandAsset(file, uid) {
+    // File Upload
+    uploadFile: async (file, path) => {
         try {
+            if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+            
             const storageRef = storage.ref();
-            const fileRef = storageRef.child(`brand-assets/${uid}/${Date.now()}_${file.name}`);
-            const snapshot = await fileRef.put(file);
-            const downloadURL = await snapshot.ref.getDownloadURL();
+            const fileRef = storageRef.child(`${path}/${Date.now()}_${file.name}`);
+            await fileRef.put(file);
+            const url = await fileRef.getDownloadURL();
             
-            return { success: true, url: downloadURL };
+            return { success: true, url };
         } catch (error) {
             return { success: false, error: error.message };
         }
-    },
-    
-    // Chat Functions
-    async sendMessage(projectId, messageData) {
-        try {
-            await db.collection('projects').doc(projectId).collection('messages').add({
-                ...messageData,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            return { success: true };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-    
-    async getMessages(projectId) {
-        try {
-            const snapshot = await db.collection('projects').doc(projectId)
-                .collection('messages')
-                .orderBy('timestamp', 'asc')
-                .limit(50)
-                .get();
-            
-            const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            return { success: true, messages: messages };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    },
-    
-    // Demo Mode Functions
-    setupDemoMode() {
-        console.log("Setting up demo mode");
-        // Mock auth object for demo
-        auth = {
-            currentUser: { uid: 'demo_user', email: 'demo@codenprofit.com', displayName: 'Demo User' },
-            onAuthStateChanged: (callback) => {
-                callback({ uid: 'demo_user', email: 'demo@codenprofit.com', displayName: 'Demo User' });
-                return () => {};
-            },
-            signOut: () => Promise.resolve()
-        };
-        
-        // Mock db object for demo
-        db = {
-            collection: () => ({
-                doc: () => ({
-                    get: () => Promise.resolve({ exists: false }),
-                    set: () => Promise.resolve(),
-                    update: () => Promise.resolve(),
-                    collection: () => ({
-                        add: () => Promise.resolve(),
-                        get: () => Promise.resolve({ docs: [] })
-                    })
-                }),
-                where: () => ({ orderBy: () => ({ get: () => Promise.resolve({ docs: [] }) }) }),
-                add: () => Promise.resolve({ id: 'demo_id' })
-            })
-        };
-        
-        return true;
     }
 };
 
-// Check if running locally (no Firebase)
-function isLocalEnvironment() {
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.protocol === 'file:';
-}
+// Make FirebaseService available globally
+window.FirebaseService = FirebaseService;
+window.firebaseInitialized = isFirebaseInitialized;
