@@ -1,4 +1,4 @@
-// firebase-config.js
+// Firebase Configuration for codenprofit
 const firebaseConfig = {
   apiKey: "AIzaSyBUrhsiZFUC2RDwZamM1u322kbix0lM58M",
   authDomain: "codenprofit.firebaseapp.com",
@@ -13,45 +13,64 @@ const firebaseConfig = {
 let app, auth, db, storage;
 let isFirebaseInitialized = false;
 
-try {
-  if (!firebase.apps.length) {
-    app = firebase.initializeApp(firebaseConfig);
-  } else {
-    app = firebase.apps[0];
+// Check if Firebase SDK is loaded
+if (typeof firebase !== 'undefined') {
+  try {
+    if (!firebase.apps.length) {
+      app = firebase.initializeApp(firebaseConfig);
+    } else {
+      app = firebase.apps[0];
+    }
+    
+    auth = firebase.auth();
+    db = firebase.firestore();
+    storage = firebase.storage();
+    
+    // Enable offline persistence for better offline experience
+    db.enablePersistence({ synchronizeTabs: true })
+      .then(() => console.log('Firestore persistence enabled'))
+      .catch(err => {
+        if (err.code === 'failed-precondition') {
+          console.warn('Multiple tabs open, persistence enabled in one tab only');
+        } else if (err.code === 'unimplemented') {
+          console.warn('Browser doesn\'t support persistence');
+        }
+      });
+    
+    isFirebaseInitialized = true;
+    console.log('✅ Firebase initialized successfully for codenprofit');
+  } catch (error) {
+    console.error('❌ Firebase initialization error:', error);
+    isFirebaseInitialized = false;
   }
-  
-  auth = firebase.auth();
-  db = firebase.firestore();
-  storage = firebase.storage();
-  
-  // Enable offline persistence
-  db.enablePersistence({ synchronizeTabs: true })
-    .catch(err => console.warn('Firestore persistence error:', err));
-  
-  isFirebaseInitialized = true;
-  console.log('Firebase initialized successfully for codenprofit');
-} catch (error) {
-  console.error('Firebase initialization error:', error);
+} else {
+  console.error('❌ Firebase SDK not loaded');
   isFirebaseInitialized = false;
 }
 
-// Firebase Service (same as before)
+// Firebase Service Object
 const FirebaseService = {
+  // Initialize
   initializeFirebase: () => isFirebaseInitialized,
+  
+  // Getters
   getAuth: () => auth,
   getDb: () => db,
   getStorage: () => storage,
+  isInitialized: () => isFirebaseInitialized,
   
   // Auth Methods
   signUp: async (email, password, userData) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!auth) throw new Error('Auth not available');
       
       const userCredential = await auth.createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
       
       await user.updateProfile({ displayName: userData.displayName });
       
+      // Save user data to Firestore
       await db.collection(userData.userType + 's').doc(user.uid).set({
         ...userData,
         uid: user.uid,
@@ -61,6 +80,7 @@ const FirebaseService = {
       
       return { success: true, user };
     } catch (error) {
+      console.error('Signup error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -68,10 +88,12 @@ const FirebaseService = {
   signIn: async (email, password) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!auth) throw new Error('Auth not available');
       
       const userCredential = await auth.signInWithEmailAndPassword(email, password);
       return { success: true, user: userCredential.user };
     } catch (error) {
+      console.error('Signin error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -81,6 +103,7 @@ const FirebaseService = {
       if (auth) await auth.signOut();
       return { success: true };
     } catch (error) {
+      console.error('Signout error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -89,6 +112,7 @@ const FirebaseService = {
   getUserData: async (userId, userType) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!db) throw new Error('Firestore not available');
       
       const doc = await db.collection(userType + 's').doc(userId).get();
       if (doc.exists) {
@@ -96,6 +120,7 @@ const FirebaseService = {
       }
       return { success: false, error: 'User not found' };
     } catch (error) {
+      console.error('Get user data error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -103,6 +128,7 @@ const FirebaseService = {
   updateUserData: async (userId, userType, data) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!db) throw new Error('Firestore not available');
       
       await db.collection(userType + 's').doc(userId).set({
         ...data,
@@ -111,6 +137,7 @@ const FirebaseService = {
       
       return { success: true };
     } catch (error) {
+      console.error('Update user data error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -119,13 +146,18 @@ const FirebaseService = {
   createProject: async (projectData) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!db) throw new Error('Firestore not available');
       
-      projectData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      projectData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+      const dataToSave = {
+        ...projectData,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
       
-      const docRef = await db.collection('projects').add(projectData);
+      const docRef = await db.collection('projects').add(dataToSave);
       return { success: true, id: docRef.id };
     } catch (error) {
+      console.error('Create project error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -133,6 +165,7 @@ const FirebaseService = {
   getProjectsByHost: async (hostId) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!db) throw new Error('Firestore not available');
       
       const snapshot = await db.collection('projects')
         .where('hostId', '==', hostId)
@@ -142,6 +175,7 @@ const FirebaseService = {
       const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       return { success: true, projects };
     } catch (error) {
+      console.error('Get projects error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -149,6 +183,7 @@ const FirebaseService = {
   getAvailableProjects: async () => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!db) throw new Error('Firestore not available');
       
       const snapshot = await db.collection('projects')
         .where('status', '==', 'open')
@@ -159,6 +194,7 @@ const FirebaseService = {
       const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       return { success: true, projects };
     } catch (error) {
+      console.error('Get available projects error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -166,6 +202,7 @@ const FirebaseService = {
   updateProject: async (projectId, data) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!db) throw new Error('Firestore not available');
       
       await db.collection('projects').doc(projectId).update({
         ...data,
@@ -174,6 +211,7 @@ const FirebaseService = {
       
       return { success: true };
     } catch (error) {
+      console.error('Update project error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -182,6 +220,7 @@ const FirebaseService = {
   getDevelopers: async (filter = 'all') => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!db) throw new Error('Firestore not available');
       
       let query = db.collection('developers').where('onboardingComplete', '==', true);
       
@@ -194,6 +233,7 @@ const FirebaseService = {
       
       return { success: true, developers };
     } catch (error) {
+      console.error('Get developers error:', error);
       return { success: false, error: error.message };
     }
   },
@@ -202,6 +242,7 @@ const FirebaseService = {
   uploadFile: async (file, path) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      if (!storage) throw new Error('Storage not available');
       
       const storageRef = storage.ref();
       const fileRef = storageRef.child(`${path}/${Date.now()}_${file.name}`);
@@ -210,10 +251,15 @@ const FirebaseService = {
       
       return { success: true, url };
     } catch (error) {
+      console.error('Upload file error:', error);
       return { success: false, error: error.message };
     }
   }
 };
 
+// Make FirebaseService available globally
 window.FirebaseService = FirebaseService;
 window.firebaseInitialized = isFirebaseInitialized;
+
+// Log status
+console.log('Firebase initialized:', isFirebaseInitialized);
