@@ -50,7 +50,6 @@
         
         .text-accent-teal { color: var(--accent-teal); }
         .text-soft-ice { color: var(--soft-ice); }
-        .bg-primary-dark { background-color: var(--primary-dark); }
         
         .form-input {
             background: rgba(43, 122, 120, 0.2);
@@ -59,20 +58,10 @@
             transition: all 0.3s ease;
         }
         
-        .form-input:hover {
-            border-color: rgba(58, 175, 169, 0.6);
-        }
-        
         .form-input:focus {
             outline: none;
             border-color: var(--accent-teal);
             box-shadow: 0 0 0 3px rgba(58, 175, 169, 0.2);
-            background: rgba(43, 122, 120, 0.3);
-        }
-        
-        .form-input::placeholder {
-            color: rgba(222, 242, 241, 0.5);
-            font-size: 0.9rem;
         }
         
         .btn-primary {
@@ -80,17 +69,11 @@
             color: var(--primary-dark);
             font-weight: 600;
             transition: all 0.3s ease;
-            border: none;
         }
         
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(58, 175, 169, 0.4);
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
         
         .btn-outline {
@@ -106,15 +89,9 @@
             transform: translateY(-2px);
         }
         
-        .account-type-btn {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
         .account-type-btn.active {
             background: linear-gradient(135deg, var(--accent-teal) 0%, var(--surface-teal) 100%);
             color: var(--primary-dark);
-            border: none;
         }
         
         .account-type-btn:not(.active) {
@@ -123,17 +100,13 @@
             border: 1px solid rgba(58, 175, 169, 0.3);
         }
         
-        .account-type-btn:hover:not(.active) {
-            background: rgba(43, 122, 120, 0.4);
-        }
-        
         .notification {
             position: fixed;
             top: 24px;
             right: 24px;
             z-index: 1000;
             transform: translateX(400px);
-            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.3s ease;
             max-width: 380px;
         }
         
@@ -154,12 +127,10 @@
             align-items: center;
             z-index: 9999;
             flex-direction: column;
-            transition: opacity 0.3s ease;
         }
         
         .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
+            display: none;
         }
         
         .loading-spinner {
@@ -172,50 +143,8 @@
             margin-bottom: 24px;
         }
         
-        .loading-spinner.small {
-            width: 30px;
-            height: 30px;
-            border-width: 3px;
-        }
-        
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        
-        /* Password strength indicator */
-        .password-strength {
-            height: 4px;
-            background: rgba(222, 242, 241, 0.2);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-        
-        .password-strength-bar {
-            height: 100%;
-            width: 0;
-            transition: width 0.3s ease, background-color 0.3s ease;
-        }
-        
-        .strength-weak { background: #ef4444; }
-        .strength-medium { background: #f59e0b; }
-        .strength-strong { background: #10b981; }
-        
-        /* Terms checkbox styling */
-        .terms-checkbox {
-            accent-color: var(--accent-teal);
-            width: 16px;
-            height: 16px;
-            margin-top: 2px;
         }
     </style>
 </head>
@@ -223,7 +152,7 @@
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
         <div class="loading-spinner"></div>
-        <p class="text-accent-teal text-lg font-semibold pulse" id="loading-message">Processing...</p>
+        <p class="text-accent-teal text-lg font-semibold" id="loading-message">Processing...</p>
     </div>
     
     <!-- Notification -->
@@ -236,7 +165,7 @@
                 <p class="font-bold text-lg mb-1" id="notification-title">Success!</p>
                 <p class="text-sm text-soft-ice opacity-90" id="notification-message"></p>
             </div>
-            <button onclick="hideNotification()" class="text-soft-ice hover:text-accent-teal ml-2 transition-colors">
+            <button onclick="hideNotification()" class="text-soft-ice hover:text-accent-teal ml-2">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -249,16 +178,16 @@
                 <div class="w-14 h-14 rounded-full gradient-accent flex items-center justify-center shadow-lg">
                     <span class="font-bold text-primary-dark text-2xl">C</span>
                 </div>
-                <span class="text-3xl font-bold text-accent-teal tracking-wider drop-shadow-lg">CODENPROFIT</span>
+                <span class="text-3xl font-bold text-accent-teal tracking-wider">CODENPROFIT</span>
             </div>
-            <p class="text-soft-ice text-lg opacity-90">Turn Code Into Commercial Capital</p>
+            <p class="text-soft-ice text-lg">Turn Code Into Commercial Capital</p>
         </div>
         
         <!-- Auth Container -->
-        <div class="glass-effect rounded-2xl p-8 shadow-2xl">
+        <div class="glass-effect rounded-2xl p-8">
             <!-- Login Container -->
             <div id="login-container">
-                <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-accent-teal to-soft-ice bg-clip-text text-transparent">Welcome Back</h2>
+                <h2 class="text-3xl font-bold mb-8 text-center text-accent-teal">Welcome Back</h2>
                 
                 <form id="login-form" class="space-y-6">
                     <div>
@@ -266,10 +195,9 @@
                         <input 
                             type="email" 
                             id="login-email" 
-                            name="email"
                             required 
                             autocomplete="email"
-                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            class="w-full px-4 py-3 rounded-lg form-input"
                             placeholder="name@company.com"
                         >
                     </div>
@@ -279,53 +207,30 @@
                         <input 
                             type="password" 
                             id="login-password" 
-                            name="password"
                             required 
                             autocomplete="current-password"
-                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            class="w-full px-4 py-3 rounded-lg form-input"
                             placeholder="••••••••"
                         >
                     </div>
                     
                     <div class="flex items-center justify-between">
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="checkbox" id="remember-me" class="terms-checkbox">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="remember-me" class="accent-accent-teal">
                             <span class="text-sm text-soft-ice">Remember me</span>
                         </label>
-                        <button type="button" onclick="showForgotPassword()" class="text-sm text-accent-teal hover:underline font-medium transition-all">
+                        <button type="button" onclick="showForgotPassword()" class="text-sm text-accent-teal hover:underline">
                             Forgot password?
                         </button>
                     </div>
                     
-                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold text-base tracking-wide">
+                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold">
                         Sign In
                     </button>
                     
-                    <div class="relative my-8">
-                        <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-surface-teal/30"></div>
-                        </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-transparent text-soft-ice bg-opacity-90">Or continue with</span>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <button type="button" onclick="loginWithGoogle()" 
-                                class="py-3 rounded-lg bg-surface-teal/20 border border-surface-teal/40 text-soft-ice hover:bg-surface-teal/30 transition-all flex items-center justify-center space-x-2">
-                            <i class="fab fa-google text-accent-teal"></i>
-                            <span>Google</span>
-                        </button>
-                        <button type="button" onclick="loginWithGitHub()" 
-                                class="py-3 rounded-lg bg-surface-teal/20 border border-surface-teal/40 text-soft-ice hover:bg-surface-teal/30 transition-all flex items-center justify-center space-x-2">
-                            <i class="fab fa-github text-accent-teal"></i>
-                            <span>GitHub</span>
-                        </button>
-                    </div>
-                    
-                    <p class="text-center text-soft-ice mt-8">
+                    <p class="text-center text-soft-ice mt-6">
                         Don't have an account? 
-                        <button type="button" onclick="showSignup()" class="text-accent-teal hover:underline ml-1 font-semibold transition-all">
+                        <button type="button" onclick="showSignup()" class="text-accent-teal hover:underline ml-1 font-semibold">
                             Sign up
                         </button>
                     </p>
@@ -334,7 +239,7 @@
             
             <!-- Signup Container -->
             <div id="signup-container" class="hidden">
-                <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-accent-teal to-soft-ice bg-clip-text text-transparent">Join the Movement</h2>
+                <h2 class="text-3xl font-bold mb-8 text-center text-accent-teal">Join the Movement</h2>
                 
                 <form id="signup-form" class="space-y-6">
                     <div class="grid grid-cols-2 gap-4">
@@ -343,10 +248,9 @@
                             <input 
                                 type="text" 
                                 id="signup-firstname" 
-                                name="firstName"
                                 required 
                                 autocomplete="given-name"
-                                class="w-full px-4 py-3 rounded-lg form-input text-base"
+                                class="w-full px-4 py-3 rounded-lg form-input"
                                 placeholder="John"
                             >
                         </div>
@@ -355,10 +259,9 @@
                             <input 
                                 type="text" 
                                 id="signup-lastname" 
-                                name="lastName"
                                 required 
                                 autocomplete="family-name"
-                                class="w-full px-4 py-3 rounded-lg form-input text-base"
+                                class="w-full px-4 py-3 rounded-lg form-input"
                                 placeholder="Doe"
                             >
                         </div>
@@ -369,10 +272,9 @@
                         <input 
                             type="email" 
                             id="signup-email" 
-                            name="email"
                             required 
                             autocomplete="email"
-                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            class="w-full px-4 py-3 rounded-lg form-input"
                             placeholder="name@company.com"
                         >
                     </div>
@@ -382,31 +284,24 @@
                         <input 
                             type="password" 
                             id="signup-password" 
-                            name="new-password"
                             required 
                             autocomplete="new-password"
-                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            class="w-full px-4 py-3 rounded-lg form-input"
                             placeholder="Create a password"
-                            onkeyup="checkPasswordStrength(this.value)"
                         >
-                        <div class="password-strength">
-                            <div id="password-strength-bar" class="password-strength-bar"></div>
-                        </div>
-                        <p class="text-xs text-soft-ice mt-2 opacity-80">
-                            <i class="fas fa-info-circle mr-1"></i> Minimum 8 characters with letters and numbers
-                        </p>
+                        <p class="text-xs text-soft-ice mt-2">Minimum 8 characters</p>
                     </div>
                     
                     <div>
                         <p class="text-soft-ice mb-3 text-sm font-medium">I am a:</p>
                         <div class="grid grid-cols-2 gap-4">
                             <button type="button" id="host-btn" 
-                                    class="py-3 rounded-lg account-type-btn active text-sm font-medium"
+                                    class="py-3 rounded-lg account-type-btn active"
                                     onclick="selectAccountType('host')">
                                 Business Host
                             </button>
                             <button type="button" id="dev-btn" 
-                                    class="py-3 rounded-lg account-type-btn text-sm font-medium"
+                                    class="py-3 rounded-lg account-type-btn"
                                     onclick="selectAccountType('developer')">
                                 Developer
                             </button>
@@ -414,19 +309,19 @@
                     </div>
                     
                     <div class="flex items-start space-x-3">
-                        <input type="checkbox" id="terms" required class="terms-checkbox mt-1">
-                        <label for="terms" class="text-sm text-soft-ice leading-relaxed">
-                            I agree to the <a href="#" onclick="showTerms()" class="text-accent-teal hover:underline font-medium">Terms of Service</a> and <a href="#" onclick="showPrivacy()" class="text-accent-teal hover:underline font-medium">Privacy Policy</a>
+                        <input type="checkbox" id="terms" required class="accent-accent-teal mt-1">
+                        <label for="terms" class="text-sm text-soft-ice">
+                            I agree to the <a href="#" onclick="showTerms()" class="text-accent-teal hover:underline">Terms of Service</a> and <a href="#" onclick="showPrivacy()" class="text-accent-teal hover:underline">Privacy Policy</a>
                         </label>
                     </div>
                     
-                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold text-base tracking-wide">
+                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold">
                         Create Account
                     </button>
                     
-                    <p class="text-center text-soft-ice mt-8">
+                    <p class="text-center text-soft-ice mt-6">
                         Already have an account? 
-                        <button type="button" onclick="showLogin()" class="text-accent-teal hover:underline ml-1 font-semibold transition-all">
+                        <button type="button" onclick="showLogin()" class="text-accent-teal hover:underline ml-1 font-semibold">
                             Sign in
                         </button>
                     </p>
@@ -435,7 +330,7 @@
             
             <!-- Forgot Password Container -->
             <div id="forgot-password-container" class="hidden">
-                <h2 class="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-accent-teal to-soft-ice bg-clip-text text-transparent">Reset Password</h2>
+                <h2 class="text-3xl font-bold mb-8 text-center text-accent-teal">Reset Password</h2>
                 
                 <form id="forgot-password-form" class="space-y-6">
                     <div>
@@ -443,23 +338,19 @@
                         <input 
                             type="email" 
                             id="reset-email" 
-                            name="email"
                             required 
                             autocomplete="email"
-                            class="w-full px-4 py-3 rounded-lg form-input text-base"
+                            class="w-full px-4 py-3 rounded-lg form-input"
                             placeholder="name@company.com"
                         >
-                        <p class="text-sm text-soft-ice mt-3 opacity-80">
-                            <i class="fas fa-envelope mr-1"></i> We'll send you a link to reset your password
-                        </p>
                     </div>
                     
-                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold text-base tracking-wide">
+                    <button type="submit" class="w-full py-3.5 rounded-lg btn-primary font-semibold">
                         Send Reset Link
                     </button>
                     
                     <button type="button" onclick="showLogin()" 
-                            class="w-full py-3.5 rounded-lg btn-outline font-semibold text-base">
+                            class="w-full py-3.5 rounded-lg btn-outline font-semibold">
                         Back to Login
                     </button>
                 </form>
@@ -469,7 +360,7 @@
         <!-- Back to home -->
         <div class="text-center mt-8">
             <a href="index.html" class="text-soft-ice hover:text-accent-teal transition-all inline-flex items-center space-x-2">
-                <i class="fas fa-arrow-left text-sm"></i>
+                <i class="fas fa-arrow-left"></i>
                 <span>Back to Home</span>
             </a>
         </div>
@@ -478,7 +369,6 @@
     <script>
         // Global Variables
         let selectedAccountType = 'host';
-        let currentUser = null;
         let isDemoMode = false;
         
         // DOM Elements
@@ -486,104 +376,83 @@
         const signupContainer = document.getElementById('signup-container');
         const forgotPasswordContainer = document.getElementById('forgot-password-container');
         const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingMessage = document.getElementById('loading-message');
         
         // Initialize
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                // Check Firebase initialization
-                if (typeof FirebaseService === 'undefined' || !window.firebaseInitialized) {
-                    console.warn('Firebase not initialized, using demo mode');
-                    isDemoMode = true;
-                }
-                
-                // Check URL parameters
-                const urlParams = new URLSearchParams(window.location.search);
-                const action = urlParams.get('action');
-                const type = urlParams.get('type');
-                
-                if (type) {
-                    selectAccountType(type);
-                }
-                
-                if (action === 'signup') {
-                    showSignup();
-                } else {
-                    showLogin();
-                }
-                
-                // Check if user is already logged in
-                await checkAuthState();
-                
-                // Setup form handlers
-                setupFormHandlers();
-                
-                // Load remembered email
-                loadRememberedEmail();
-                
-            } catch (error) {
-                console.error('Initialization error:', error);
-                showNotification('Error', 'Failed to initialize. Using demo mode.', 'error');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check Firebase
+            if (typeof FirebaseService === 'undefined' || !window.firebaseInitialized) {
+                console.log('Using demo mode');
                 isDemoMode = true;
             }
-        });
-        
-        // Setup Form Handlers
-        function setupFormHandlers() {
+            
+            // Check URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            const type = urlParams.get('type');
+            
+            if (type) {
+                selectAccountType(type);
+            }
+            
+            if (action === 'signup') {
+                showSignup();
+            } else {
+                showLogin();
+            }
+            
+            // Check if already logged in
+            checkAuthState();
+            
+            // Setup form handlers
             document.getElementById('login-form').addEventListener('submit', handleLogin);
             document.getElementById('signup-form').addEventListener('submit', handleSignup);
             document.getElementById('forgot-password-form').addEventListener('submit', handleForgotPassword);
-        }
+        });
         
-        // Check Authentication State
-        async function checkAuthState() {
-            try {
-                if (!isDemoMode && FirebaseService && FirebaseService.getAuth()) {
-                    const auth = FirebaseService.getAuth();
-                    auth.onAuthStateChanged((user) => {
-                        if (user) {
-                            // User is logged in, redirect to appropriate dashboard
-                            redirectToDashboard(user);
-                        }
-                    });
+        // Check Auth State
+        function checkAuthState() {
+            if (!isDemoMode && FirebaseService && FirebaseService.getAuth()) {
+                const auth = FirebaseService.getAuth();
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        showLoading('Redirecting...');
+                        await redirectToDashboard(user);
+                    }
+                });
+            } else {
+                // Check demo user in localStorage
+                const demoUser = localStorage.getItem('demo_user');
+                if (demoUser) {
+                    const user = JSON.parse(demoUser);
+                    if (user.userType === 'developer') {
+                        window.location.href = 'dev.html';
+                    } else if (user.userType === 'host') {
+                        window.location.href = 'host.html';
+                    }
                 }
-            } catch (error) {
-                console.error('Auth check error:', error);
             }
         }
         
         // Redirect to Dashboard
         async function redirectToDashboard(user) {
             try {
-                showLoading('Checking session...');
-                
-                if (!isDemoMode && FirebaseService && FirebaseService.getDb()) {
-                    const db = FirebaseService.getDb();
+                if (!isDemoMode && FirebaseService) {
+                    const result = await FirebaseService.getUserType(user.uid);
                     
-                    // Check user type
-                    const devDoc = await db.collection('developers').doc(user.uid).get();
-                    const hostDoc = await db.collection('hosts').doc(user.uid).get();
-                    
-                    hideLoading();
-                    
-                    if (devDoc.exists) {
-                        window.location.href = 'dev.html';
-                    } else if (hostDoc.exists) {
-                        window.location.href = 'host.html';
+                    if (result.success) {
+                        if (result.type === 'developer') {
+                            window.location.href = 'dev.html';
+                        } else if (result.type === 'host') {
+                            window.location.href = 'host.html';
+                        }
+                    } else {
+                        // New user - stay on auth page
+                        hideLoading();
                     }
                 }
             } catch (error) {
-                hideLoading();
                 console.error('Redirect error:', error);
-            }
-        }
-        
-        // Load Remembered Email
-        function loadRememberedEmail() {
-            const remembered = localStorage.getItem('remembered_email');
-            if (remembered) {
-                document.getElementById('login-email').value = remembered;
-                document.getElementById('remember-me').checked = true;
+                hideLoading();
             }
         }
         
@@ -606,59 +475,11 @@
             forgotPasswordContainer.classList.remove('hidden');
         }
         
-        function showTerms() {
-            showNotification('Terms of Service', 'Terms and conditions would be displayed here', 'info');
-        }
-        
-        function showPrivacy() {
-            showNotification('Privacy Policy', 'Privacy policy would be displayed here', 'info');
-        }
-        
-        // Account Type Selection
         function selectAccountType(type) {
             selectedAccountType = type;
             
-            const hostBtn = document.getElementById('host-btn');
-            const devBtn = document.getElementById('dev-btn');
-            
-            if (type === 'host') {
-                hostBtn.classList.add('active');
-                devBtn.classList.remove('active');
-            } else {
-                devBtn.classList.add('active');
-                hostBtn.classList.remove('active');
-            }
-        }
-        
-        // Password Strength Checker
-        function checkPasswordStrength(password) {
-            const bar = document.getElementById('password-strength-bar');
-            let strength = 0;
-            let strengthText = '';
-            
-            if (password.length >= 8) strength += 1;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
-            if (password.match(/[0-9]/)) strength += 1;
-            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
-            
-            let width = (strength / 4) * 100;
-            bar.style.width = width + '%';
-            
-            if (width < 25) {
-                bar.className = 'password-strength-bar strength-weak';
-                strengthText = 'Weak';
-            } else if (width < 50) {
-                bar.className = 'password-strength-bar strength-weak';
-                strengthText = 'Weak';
-            } else if (width < 75) {
-                bar.className = 'password-strength-bar strength-medium';
-                strengthText = 'Medium';
-            } else {
-                bar.className = 'password-strength-bar strength-strong';
-                strengthText = 'Strong';
-            }
-            
-            return strengthText;
+            document.getElementById('host-btn').classList.toggle('active', type === 'host');
+            document.getElementById('dev-btn').classList.toggle('active', type === 'developer');
         }
         
         // Handle Login
@@ -674,44 +495,33 @@
                 return;
             }
             
-            // Basic email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showNotification('Error', 'Please enter a valid email address', 'error');
-                return;
-            }
-            
             showLoading('Signing in...');
             
             if (isDemoMode) {
                 // Demo mode login
                 setTimeout(() => {
-                    hideLoading();
-                    showNotification('Success', 'Demo login successful!', 'success');
-                    
-                    // Store demo user
                     const demoUser = {
                         uid: 'demo_' + Date.now(),
                         email: email,
                         displayName: email.split('@')[0],
-                        firstName: email.split('@')[0],
-                        lastName: 'User',
-                        userType: selectedAccountType,
-                        onboardingComplete: false
+                        userType: selectedAccountType
                     };
                     localStorage.setItem('demo_user', JSON.stringify(demoUser));
                     
                     if (rememberMe) {
                         localStorage.setItem('remembered_email', email);
-                    } else {
-                        localStorage.removeItem('remembered_email');
                     }
                     
-                    // Redirect
+                    showNotification('Success', 'Demo login successful!', 'success');
+                    
                     setTimeout(() => {
-                        window.location.href = selectedAccountType === 'host' ? 'host.html' : 'dev.html';
+                        if (selectedAccountType === 'developer') {
+                            window.location.href = 'dev.html';
+                        } else {
+                            window.location.href = 'host.html';
+                        }
                     }, 1000);
-                }, 1500);
+                }, 1000);
                 return;
             }
             
@@ -719,24 +529,31 @@
                 const result = await FirebaseService.signIn(email, password);
                 
                 if (result.success) {
-                    showNotification('Success', 'Login successful! Redirecting...', 'success');
+                    showNotification('Success', 'Login successful!', 'success');
                     
                     if (rememberMe) {
                         localStorage.setItem('remembered_email', email);
-                    } else {
-                        localStorage.removeItem('remembered_email');
                     }
                     
+                    // Get user type and redirect
+                    const typeResult = await FirebaseService.getUserType(result.user.uid);
+                    
                     setTimeout(() => {
-                        redirectToDashboard(result.user);
-                    }, 1500);
+                        if (typeResult.success) {
+                            if (typeResult.type === 'developer') {
+                                window.location.href = 'dev.html';
+                            } else {
+                                window.location.href = 'host.html';
+                            }
+                        }
+                    }, 1000);
                 } else {
                     hideLoading();
-                    showNotification('Error', result.error || 'Invalid email or password', 'error');
+                    showNotification('Error', result.error || 'Invalid credentials', 'error');
                 }
             } catch (error) {
                 hideLoading();
-                showNotification('Error', 'Login failed. Please try again.', 'error');
+                showNotification('Error', 'Login failed', 'error');
             }
         }
         
@@ -750,44 +567,25 @@
             const password = document.getElementById('signup-password').value;
             const terms = document.getElementById('terms').checked;
             
-            // Validation
             if (!firstName || !lastName || !email || !password) {
                 showNotification('Error', 'Please fill all fields', 'error');
                 return;
             }
             
             if (!terms) {
-                showNotification('Error', 'Please agree to the terms and conditions', 'error');
+                showNotification('Error', 'Please agree to the terms', 'error');
                 return;
             }
             
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showNotification('Error', 'Please enter a valid email address', 'error');
-                return;
-            }
-            
-            // Password validation
             if (password.length < 8) {
                 showNotification('Error', 'Password must be at least 8 characters', 'error');
                 return;
             }
             
-            if (!password.match(/[A-Za-z]/) || !password.match(/[0-9]/)) {
-                showNotification('Error', 'Password must contain both letters and numbers', 'error');
-                return;
-            }
-            
-            showLoading('Creating your account...');
+            showLoading('Creating account...');
             
             if (isDemoMode) {
-                // Demo mode signup
                 setTimeout(() => {
-                    hideLoading();
-                    showNotification('Success', 'Account created successfully! (Demo Mode)', 'success');
-                    
-                    // Store demo user
                     const demoUser = {
                         uid: 'demo_' + Date.now(),
                         email: email,
@@ -799,29 +597,32 @@
                     };
                     localStorage.setItem('demo_user', JSON.stringify(demoUser));
                     
-                    // Redirect to appropriate page
+                    showNotification('Success', 'Account created! (Demo Mode)', 'success');
+                    
                     setTimeout(() => {
-                        window.location.href = selectedAccountType === 'developer' ? 'dev.html' : 'host.html';
-                    }, 1500);
-                }, 2000);
+                        if (selectedAccountType === 'developer') {
+                            window.location.href = 'dev.html';
+                        } else {
+                            window.location.href = 'host.html';
+                        }
+                    }, 1000);
+                }, 1500);
                 return;
             }
             
             try {
                 const userData = {
-                    email: email,
                     displayName: `${firstName} ${lastName}`,
-                    firstName: firstName,
-                    lastName: lastName,
-                    userType: selectedAccountType,
-                    onboardingComplete: false,
-                    createdAt: new Date().toISOString()
+                    firstName,
+                    lastName,
+                    email,
+                    userType: selectedAccountType
                 };
                 
                 const result = await FirebaseService.signUp(email, password, userData);
                 
                 if (result.success) {
-                    showNotification('Success', 'Account created successfully! Redirecting...', 'success');
+                    showNotification('Success', 'Account created!', 'success');
                     
                     setTimeout(() => {
                         if (selectedAccountType === 'developer') {
@@ -832,19 +633,11 @@
                     }, 1500);
                 } else {
                     hideLoading();
-                    
-                    // Handle specific Firebase errors
-                    if (result.error.includes('email-already-in-use')) {
-                        showNotification('Error', 'This email is already registered. Please sign in.', 'error');
-                    } else if (result.error.includes('weak-password')) {
-                        showNotification('Error', 'Password is too weak. Please use a stronger password.', 'error');
-                    } else {
-                        showNotification('Error', result.error || 'Signup failed. Please try again.', 'error');
-                    }
+                    showNotification('Error', result.error, 'error');
                 }
             } catch (error) {
                 hideLoading();
-                showNotification('Error', 'Signup failed. Please try again.', 'error');
+                showNotification('Error', 'Signup failed', 'error');
             }
         }
         
@@ -855,13 +648,7 @@
             const email = document.getElementById('reset-email').value.trim();
             
             if (!email) {
-                showNotification('Error', 'Please enter your email address', 'error');
-                return;
-            }
-            
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showNotification('Error', 'Please enter a valid email address', 'error');
+                showNotification('Error', 'Please enter your email', 'error');
                 return;
             }
             
@@ -870,11 +657,8 @@
             if (isDemoMode) {
                 setTimeout(() => {
                     hideLoading();
-                    showNotification('Success', 'Password reset email sent! (Demo Mode)', 'success');
-                    
-                    setTimeout(() => {
-                        showLogin();
-                    }, 2000);
+                    showNotification('Success', 'Reset email sent! (Demo Mode)', 'success');
+                    setTimeout(showLogin, 2000);
                 }, 1500);
                 return;
             }
@@ -884,36 +668,17 @@
                 await auth.sendPasswordResetEmail(email);
                 
                 hideLoading();
-                showNotification('Success', 'Password reset email sent! Check your inbox.', 'success');
-                
-                setTimeout(() => {
-                    showLogin();
-                }, 2000);
+                showNotification('Success', 'Reset email sent!', 'success');
+                setTimeout(showLogin, 2000);
             } catch (error) {
                 hideLoading();
-                
-                if (error.code === 'auth/user-not-found') {
-                    showNotification('Error', 'No account found with this email address.', 'error');
-                } else {
-                    showNotification('Error', error.message || 'Failed to send reset email.', 'error');
-                }
+                showNotification('Error', error.message, 'error');
             }
         }
         
-        // Social Login (Demo)
-        function loginWithGoogle() {
-            showNotification('Info', 'Google login would connect to Firebase Auth', 'info');
-        }
-        
-        function loginWithGitHub() {
-            showNotification('Info', 'GitHub login would connect to Firebase Auth', 'info');
-        }
-        
-        // Loading Functions
+        // Utility Functions
         function showLoading(message = 'Processing...') {
-            if (loadingMessage) {
-                loadingMessage.textContent = message;
-            }
+            document.getElementById('loading-message').textContent = message;
             loadingOverlay.classList.remove('hidden');
         }
         
@@ -921,22 +686,12 @@
             loadingOverlay.classList.add('hidden');
         }
         
-        // Hide Notification
-        function hideNotification() {
-            document.getElementById('notification').classList.remove('show');
-        }
-        
-        // Notification System
         function showNotification(title, message, type = 'success') {
             const notification = document.getElementById('notification');
             const icon = document.getElementById('notification-icon');
-            const notificationTitle = document.getElementById('notification-title');
-            const notificationMessage = document.getElementById('notification-message');
             
-            // Reset classes
             icon.className = 'w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center mr-4';
             
-            // Set icon based on type
             switch(type) {
                 case 'success':
                     icon.className += ' bg-green-500/20';
@@ -950,35 +705,34 @@
                     icon.className += ' bg-blue-500/20';
                     icon.innerHTML = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
                     break;
-                case 'warning':
-                    icon.className += ' bg-yellow-500/20';
-                    icon.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>';
-                    break;
             }
             
-            notificationTitle.textContent = title;
-            notificationMessage.textContent = message;
+            document.getElementById('notification-title').textContent = title;
+            document.getElementById('notification-message').textContent = message;
             
-            // Show notification
             notification.classList.add('show');
             
-            // Auto-hide after 4 seconds
-            setTimeout(() => {
-                hideNotification();
-            }, 4000);
+            setTimeout(hideNotification, 4000);
         }
         
-        // Make functions globally available
-        window.showLogin = showLogin;
-        window.showSignup = showSignup;
-        window.showForgotPassword = showForgotPassword;
-        window.selectAccountType = selectAccountType;
-        window.loginWithGoogle = loginWithGoogle;
-        window.loginWithGitHub = loginWithGitHub;
-        window.showTerms = showTerms;
-        window.showPrivacy = showPrivacy;
-        window.hideNotification = hideNotification;
-        window.checkPasswordStrength = checkPasswordStrength;
+        function hideNotification() {
+            document.getElementById('notification').classList.remove('show');
+        }
+        
+        function showTerms() {
+            showNotification('Terms', 'Terms would be displayed here', 'info');
+        }
+        
+        function showPrivacy() {
+            showNotification('Privacy', 'Privacy policy would be displayed here', 'info');
+        }
+        
+        // Load remembered email
+        const remembered = localStorage.getItem('remembered_email');
+        if (remembered) {
+            document.getElementById('login-email').value = remembered;
+            document.getElementById('remember-me').checked = true;
+        }
     </script>
 </body>
 </html>
