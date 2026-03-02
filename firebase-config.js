@@ -24,11 +24,17 @@ if (typeof firebase !== 'undefined') {
     
     auth = firebase.auth();
     db = firebase.firestore();
-    storage = firebase.storage();
+    storage = firebase.storage(); // Make sure this is included
     
     // Enable offline persistence
     db.enablePersistence({ synchronizeTabs: true })
-      .catch(err => console.warn('Firestore persistence error:', err));
+      .catch(err => {
+        if (err.code === 'failed-precondition') {
+          console.warn('Multiple tabs open, persistence enabled in single tab only');
+        } else if (err.code === 'unimplemented') {
+          console.warn('Browser doesn\'t support persistence');
+        }
+      });
     
     isFirebaseInitialized = true;
     console.log('✅ Firebase initialized successfully');
@@ -42,10 +48,11 @@ if (typeof firebase !== 'undefined') {
 }
 
 // Firebase Service Object
-const FirebaseService = {
+window.FirebaseService = {
   isInitialized: () => isFirebaseInitialized,
   getAuth: () => auth,
   getDb: () => db,
+  getStorage: () => storage,
   
   // Auth Methods
   signUp: async (email, password, userData) => {
@@ -63,7 +70,15 @@ const FirebaseService = {
         uid: user.uid,
         email: user.email,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        onboardingComplete: false,
+        totalEarnings: 0,
+        pendingEarnings: 0,
+        activeProjects: 0,
+        completedProjects: 0,
+        avgRating: 5.0,
+        strikes: 0,
+        badges: ['New Member']
       });
       
       return { success: true, user };
@@ -92,12 +107,41 @@ const FirebaseService = {
     }
   },
   
+  // Get User Data
+  getUserData: async (userId, userType) => {
+    try {
+      if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      
+      const doc = await db.collection(userType + 's').doc(userId).get();
+      if (doc.exists) {
+        return { success: true, data: { id: doc.id, ...doc.data() } };
+      }
+      return { success: false, error: 'User not found' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Update User Data
+  updateUserData: async (userId, userType, data) => {
+    try {
+      if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      
+      await db.collection(userType + 's').doc(userId).set({
+        ...data,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
   // Get User Type
   getUserType: async (userId) => {
     try {
       if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
       
-      // Check both collections
       const devDoc = await db.collection('developers').doc(userId).get();
       if (devDoc.exists) {
         return { success: true, type: 'developer', data: devDoc.data() };
@@ -112,8 +156,69 @@ const FirebaseService = {
     } catch (error) {
       return { success: false, error: error.message };
     }
+  },
+  
+  // Get Available Projects
+  getAvailableProjects: async () => {
+    try {
+      if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      
+      const snapshot = await db.collection('projects')
+        .where('status', '==', 'open')
+        .orderBy('createdAt', 'desc')
+        .limit(20)
+        .get();
+
+      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return { success: true, projects };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Get Projects by Developer
+  getProjectsByDeveloper: async (developerId) => {
+    try {
+      if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      
+      const snapshot = await db.collection('projects')
+        .where('developerId', '==', developerId)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return { success: true, projects };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  // Apply for Project
+  applyForProject: async (projectId, developerId, developerData) => {
+    try {
+      if (!isFirebaseInitialized) throw new Error('Firebase not initialized');
+      
+      const application = {
+        projectId,
+        developerId,
+        developerName: developerData.displayName,
+        developerEmail: developerData.email,
+        appliedAt: new Date().toISOString(),
+        status: 'pending'
+      };
+
+      await db.collection('applications').add(application);
+
+      // Update project applications array
+      await db.collection('projects').doc(projectId).update({
+        applications: firebase.firestore.FieldValue.arrayUnion(developerId)
+      });
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 };
 
-window.FirebaseService = FirebaseService;
 window.firebaseInitialized = isFirebaseInitialized;
