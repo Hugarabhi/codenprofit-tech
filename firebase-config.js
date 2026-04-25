@@ -1,12 +1,7 @@
 // Firebase Configuration for codenprofit
 const firebaseConfig = {
-  apiKey: "AIzaSyBUrhsiZFUC2RDwZamM1u322kbix0lM58M",
-  authDomain: "codenprofit.firebaseapp.com",
-  projectId: "codenprofit",
-  storageBucket: "codenprofit.firebasestorage.app",
-  messagingSenderId: "332503412631",
-  appId: "1:332503412631:web:bbb5c5755253152d639ed2",
-  measurementId: "G-7307V077K6"
+  here is ny api keays
+
 };
 
 // Initialize Firebase
